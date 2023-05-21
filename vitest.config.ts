@@ -21,7 +21,7 @@ export default defineConfig({
     test: {
         dir: './tests',
         deps: {
-            inline: ['vitest-mock-process']
+            inline: ['vitest-mock-process', 'zod']
         }
     }
 });
