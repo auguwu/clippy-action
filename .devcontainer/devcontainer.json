@@ -1,0 +1,16 @@
+{
+    "name": "clippy-action",
+    "image": "ghcr.io/auguwu/coder-images/node",
+    "remoteUser": "noel",
+    "containerUser": "noel",
+    "customizations": {
+        "vscode": {
+            "extensions": ["ms-azuretools.vscode-docker", "esbenp.prettier-vscode", "dbaeumer.vscode-eslint"]
+        }
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/sshd:1": {
+            "version": "latest"
+        }
+    }
+}
