@@ -20,6 +20,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
     test: {
         dir: './tests',
+        cache: false,
         deps: {
             inline: ['vitest-mock-process', 'zod']
         }
