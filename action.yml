@@ -21,7 +21,7 @@ branding:
     icon: cloud
 runs:
     using: node16
-    main: ./build/main.js
+    main: ./build/index.js
 inputs:
     warn:
         description: List (seperated by ',') of warnings to set. (eq. to the -W/--warn flag in `cargo clippy`)
