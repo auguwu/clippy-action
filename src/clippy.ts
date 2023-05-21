@@ -16,10 +16,11 @@
  */
 
 import { type AnnotationProperties, group, info, error, warning, debug } from '@actions/core';
-import { Stopwatch, assertIsError, hasOwnProperty } from '@noelware/utils';
-import { type ExecOptions, exec, getExecOutput } from '@actions/exec';
+import { assertIsError, hasOwnProperty } from '@noelware/utils';
+import { type ExecOptions, exec } from '@actions/exec';
 import type { Inputs } from './inputs';
 
+// We only use a renderer so we can mock it in tests
 export interface Renderer {
     warning(message: string, properties: AnnotationProperties): void;
     error(message: string, properties: AnnotationProperties): void;
@@ -35,7 +36,7 @@ const kDefaultRenderer: Renderer = {
 export const getClippyOutput = (inputs: Inputs, cargoPath: string): Promise<[exitCode: number, data: string[]]> =>
     group('Executing `cargo clippy`...', async () => {
         //const stopwatch = Stopwatch.createStarted();
-        const args = ['clippy'];
+        const args = ['clippy', '--message-format', 'json'];
 
         if (inputs.forbid.length) {
             args.push(...inputs.forbid.map((forbid) => `-F${forbid}`));
@@ -55,14 +56,10 @@ export const getClippyOutput = (inputs: Inputs, cargoPath: string): Promise<[exi
 
         const data: string[] = [];
         const execOptions: ExecOptions = {
-            windowsVerbatimArguments: true,
             ignoreReturnCode: true,
             failOnStdErr: false,
-            //silent: true,
             listeners: {
                 stdline(piece) {
-                    console.log(piece);
-
                     try {
                         JSON.parse(piece);
                         data.push(piece);
@@ -144,6 +141,11 @@ export const renderMessages = (pieces: string[], renderer: Renderer = kDefaultRe
                 process.exit(1);
         }
 
+        // Don't log "error: aborting due to" messages
+        if (message.rendered.includes('error: aborting due to previous error')) {
+            continue;
+        }
+
         const primarySpan = message.spans.find((span: any) => hasOwnProperty(span, 'is_primary') && span.is_primary);
         if (primarySpan !== undefined) {
             const args =
@@ -151,14 +153,26 @@ export const renderMessages = (pieces: string[], renderer: Renderer = kDefaultRe
                     ? [message.rendered]
                     : [
                           message.rendered,
-                          {
-                              startColumn: primarySpan.column_start,
-                              endColumn: primarySpan.column_end,
-                              startLine: primarySpan.line_start,
-                              endLine: primarySpan.line_end,
-                              title: message.message,
-                              file: data.target.src_path
-                          } satisfies AnnotationProperties
+
+                          // We shouldn't include file as tests will be flaky
+                          // in CI, so it'll only show up if it was
+                          // actually ran.
+                          process.env.VITEST === 'true'
+                              ? ({
+                                    startColumn: primarySpan.column_start,
+                                    endColumn: primarySpan.column_end,
+                                    startLine: primarySpan.line_start,
+                                    endLine: primarySpan.line_end,
+                                    title: message.message
+                                } satisfies AnnotationProperties)
+                              : ({
+                                    startColumn: primarySpan.column_start,
+                                    endColumn: primarySpan.column_end,
+                                    startLine: primarySpan.line_start,
+                                    endLine: primarySpan.line_end,
+                                    title: message.message,
+                                    file: data.target.src_path
+                                } satisfies AnnotationProperties)
                       ];
 
             method.apply(null, args);

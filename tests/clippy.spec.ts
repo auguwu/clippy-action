@@ -16,11 +16,12 @@
  */
 
 import { type Renderer, getClippyOutput, renderMessages } from '../src/clippy';
+import { beforeEach, test, expect, afterAll } from 'vitest';
 import type { AnnotationProperties } from '@actions/core';
-import { beforeEach, test, expect } from 'vitest';
-import { which } from '@actions/io';
+import { mockProcessStdout } from 'vitest-mock-process';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import { which } from '@actions/io';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -50,6 +51,12 @@ const flushRenderQueue = () => {
     }
 };
 
+const stdoutMock = mockProcessStdout();
+
+afterAll(() => {
+    stdoutMock.mockReset();
+});
+
 beforeEach(() => {
     // Flush the renderer message queue so we get fresh instances
     // in each test.
@@ -71,10 +78,11 @@ test('clippy error + warning', async () => {
         cargoPath
     );
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(101 /* the code couldn't be compiled correctly */);
     renderMessages(pieces, kMockedRenderer);
 
-    //console.log(kRenderQueue);
+    expect(kRenderQueue.warning).toMatchSnapshot();
+    expect(kRenderQueue.error).toMatchSnapshot();
 });
 
 test('can we get zero warning and error messages in __fixtures__/no-clippy-error', async () => {
@@ -92,8 +100,8 @@ test('can we get zero warning and error messages in __fixtures__/no-clippy-error
         cargoPath
     );
 
-    //expect(exitCode).toBe(0);
-    //renderMessages(pieces, kMockedRenderer);
+    expect(exitCode).toBe(0);
+    renderMessages(pieces, kMockedRenderer);
 
     //expect(kRenderQueue).toStrictEqual({
     //    warning: [],

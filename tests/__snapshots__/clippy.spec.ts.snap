@@ -1,0 +1,54 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`clippy error + warning 1`] = `
+[
+  [
+    {
+      "properties": {
+        "endColumn": 14,
+        "endLine": 4,
+        "startColumn": 9,
+        "startLine": 4,
+        "title": "variable does not need to be mutable",
+      },
+      "rendered": "warning: variable does not need to be mutable
+ --> src/main.rs:4:9
+  |
+4 |     let mut a = Box::new(1);
+  |         ----^
+  |         |
+  |         help: remove this \`mut\`
+  |
+  = note: \`#[warn(unused_mut)]\` on by default
+
+",
+    },
+  ],
+]
+`;
+
+exports[`clippy error + warning 2`] = `
+[
+  [
+    {
+      "properties": {
+        "endColumn": 24,
+        "endLine": 5,
+        "startColumn": 8,
+        "startLine": 5,
+        "title": "equal expressions as operands to \`==\`",
+      },
+      "rendered": "error: equal expressions as operands to \`==\`
+ --> src/main.rs:5:8
+  |
+5 |     if *a + 1 == *a + 1 {}
+  |        ^^^^^^^^^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#eq_op
+  = note: \`#[deny(clippy::eq_op)]\` on by default
+
+",
+    },
+  ],
+]
+`;
