@@ -15,10 +15,14 @@
  * limitations under the License.
  */
 
+import { getInputs } from './inputs';
 import { error } from '@actions/core';
 
 async function main() {
-    // TODO: this
+    const inputs = getInputs();
+    if (inputs === null) {
+        process.exit(1);
+    }
 }
 
 main().catch((ex) => {

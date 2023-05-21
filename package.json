@@ -19,7 +19,8 @@
         "@actions/core": "1.10.0",
         "@actions/exec": "1.1.1",
         "@actions/io": "1.1.3",
-        "@noelware/utils": "2.3.0"
+        "@noelware/utils": "2.3.0",
+        "zod": "3.21.4"
     },
     "devDependencies": {
         "@augu/eslint-config": "4.0.1",
