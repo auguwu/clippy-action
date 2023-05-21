@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-import { error, group, debug } from '@actions/core';
+import { endGroup, error, startGroup } from '@actions/core';
 import { getInputs } from './inputs';
 import * as clippy from './clippy';
 import { which } from '@actions/io';
-import { exec } from '@actions/exec';
 
 async function main() {
     const inputs = getInputs();
@@ -27,7 +26,7 @@ async function main() {
         process.exit(1);
     }
 
-    debug('Checking if `cargo` exists...');
+    startGroup('Checking if `cargo` exists...');
     let cargoPath: string;
 
     try {
@@ -35,20 +34,9 @@ async function main() {
     } catch (e) {
         error("Tool doesn't exist, please add a valid Rust toolchain.");
         process.exit(1);
+    } finally {
+        endGroup();
     }
-
-    group('Checking if `cargo clippy` is installed', async () => {
-        const exitCode = await exec(cargoPath, ['clippy'], {
-            windowsVerbatimArguments: true,
-            ignoreReturnCode: true,
-            silent: true
-        });
-
-        // TODO: should we install it?
-        if (exitCode !== 0) {
-            error('Clippy was not installed when a toolchain was installed. Please add it.');
-        }
-    });
 
     const [exitCode, pieces] = await clippy.getClippyOutput(inputs, cargoPath);
     clippy.renderMessages(pieces);

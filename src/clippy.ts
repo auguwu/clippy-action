@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { type AnnotationProperties, group, info, error, warning, debug } from '@actions/core';
+import { type AnnotationProperties, group, info, error, warning, debug, startGroup, endGroup } from '@actions/core';
 import { assertIsError, hasOwnProperty } from '@noelware/utils';
 import { type ExecOptions, exec } from '@actions/exec';
 import type { Inputs } from './inputs';
@@ -33,57 +33,59 @@ const kDefaultRenderer: Renderer = {
     info
 };
 
-export const getClippyOutput = (inputs: Inputs, cargoPath: string): Promise<[exitCode: number, data: string[]]> =>
-    group('Executing `cargo clippy`...', async () => {
-        //const stopwatch = Stopwatch.createStarted();
-        const args = ['clippy', '--message-format', 'json'];
+export const getClippyOutput = async (
+    inputs: Inputs,
+    cargoPath: string
+): Promise<[exitCode: number, data: string[]]> => {
+    startGroup('Executing `cargo clippy`...');
 
-        if (inputs.forbid.length) {
-            args.push(...inputs.forbid.map((forbid) => `-F${forbid}`));
-        }
+    const args = ['clippy', '--message-format', 'json'];
 
-        if (inputs.deny.length) {
-            args.push(...inputs.deny.map((deny) => `-D${deny}`));
-        }
+    if (inputs.forbid.length) {
+        args.push(...inputs.forbid.map((forbid) => `-F${forbid}`));
+    }
 
-        if (inputs.warn.length) {
-            args.push(...inputs.warn.map((allowed) => `-W${allowed}`));
-        }
+    if (inputs.deny.length) {
+        args.push(...inputs.deny.map((deny) => `-D${deny}`));
+    }
 
-        if (inputs.allow.length) {
-            args.push(...inputs.allow.map((allowed) => `-A${allowed}`));
-        }
+    if (inputs.warn.length) {
+        args.push(...inputs.warn.map((allowed) => `-W${allowed}`));
+    }
 
-        const data: string[] = [];
-        const execOptions: ExecOptions = {
-            ignoreReturnCode: true,
-            failOnStdErr: false,
-            listeners: {
-                stdline(piece) {
-                    try {
-                        JSON.parse(piece);
-                        data.push(piece);
-                    } catch (e) {
-                        assertIsError(e);
+    if (inputs.allow.length) {
+        args.push(...inputs.allow.map((allowed) => `-A${allowed}`));
+    }
 
-                        // we don't care if invalid json
-                        // was passed, we won't include it
-                        // anyway.
-                    }
+    const data: string[] = [];
+    const execOptions: ExecOptions = {
+        ignoreReturnCode: true,
+        failOnStdErr: false,
+        listeners: {
+            stdline(piece) {
+                try {
+                    JSON.parse(piece);
+                    data.push(piece);
+                } catch (e) {
+                    assertIsError(e);
+
+                    // we don't care if invalid json
+                    // was passed, we won't include it
+                    // anyway.
                 }
             }
-        };
-
-        if (inputs['working-directory'] !== undefined) {
-            execOptions.cwd = inputs['working-directory'];
         }
+    };
 
-        const exitCode = await exec(cargoPath, args, execOptions);
-        //const endTime = stopwatch.stop();
+    if (inputs['working-directory'] !== undefined) {
+        execOptions.cwd = inputs['working-directory'];
+    }
 
-        //info(`Took ${endTime} to run \`cargo clippy ${args.join(' ')}\``);
-        return [exitCode, data];
-    });
+    const exitCode = await exec(cargoPath, args, execOptions);
+
+    endGroup();
+    return [exitCode, data];
+};
 
 export const renderMessages = (pieces: string[], renderer: Renderer = kDefaultRenderer) => {
     for (const piece of pieces) {
