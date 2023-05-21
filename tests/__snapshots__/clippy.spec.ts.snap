@@ -1,5 +1,13 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`can we get zero warning and error messages in __fixtures__/no-clippy-error 1`] = `
+{
+  "error": [],
+  "info": [],
+  "warning": [],
+}
+`;
+
 exports[`clippy error + warning 1`] = `
 [
   [

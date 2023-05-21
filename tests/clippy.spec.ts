@@ -102,10 +102,5 @@ test('can we get zero warning and error messages in __fixtures__/no-clippy-error
 
     expect(exitCode).toBe(0);
     renderMessages(pieces, kMockedRenderer);
-
-    //expect(kRenderQueue).toStrictEqual({
-    //    warning: [],
-    //    error: [],
-    //    info: []
-    //});
+    expect(kRenderQueue).toMatchSnapshot();
 });
