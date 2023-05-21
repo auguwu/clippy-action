@@ -47,3 +47,7 @@ inputs:
         description: Extra arguments to append to the `cargo clippy` command.
         default: ''
         required: false
+    working-directory:
+        description: Valid, relative or absolute path to the working directory to execute `cargo clippy` from.
+        default: ''
+        required: false

@@ -19,6 +19,9 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
     test: {
-        dir: './tests'
+        dir: './tests',
+        deps: {
+            inline: ['vitest-mock-process']
+        }
     }
 });

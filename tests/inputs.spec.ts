@@ -1,0 +1,82 @@
+/*
+ * 🐻‍❄️📦 clippy-action: GitHub action to run Clippy, an up-to-date and modern version of actions-rs/clippy
+ * Copyright 2023 Noel Towa <cutie@floofy.dev>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { test, expect, beforeEach } from 'vitest';
+import { type Inputs, getInputs } from '../src/inputs';
+import { mockProcessStdout } from 'vitest-mock-process';
+
+const resetEnv = () => {
+    process.env = Object.keys(process.env).reduce((acc, curr) => {
+        if (!curr.startsWith('INPUT_')) {
+            acc[curr] = process.env[curr];
+        }
+
+        return acc;
+    }, {});
+};
+
+beforeEach(() => {
+    resetEnv();
+});
+
+test('resolve default inputs', () => {
+    const inputs = getInputs();
+    expect(inputs).not.toBeNull();
+
+    expect(inputs!['working-directory']).toBeUndefined();
+    expect(inputs!['all-features']).toBeFalsy();
+    expect(inputs!.forbid.length).toBe(0);
+    expect(inputs!.allow.length).toBe(0);
+    expect(inputs!.deny.length).toBe(0);
+    expect(inputs!.warn.length).toBe(0);
+    expect(inputs!.args.length).toBe(0);
+});
+
+test("don't resolve invalid inputs", () => {
+    // forbid
+    const mockStdout = mockProcessStdout();
+    setInput('forbid', 'unused_mut');
+    setInput('args', '-Funused_mut');
+
+    let inputs = getInputs();
+    expect(inputs).toBeNull();
+    expect(mockStdout).toHaveBeenCalledOnce();
+    expect(mockStdout).toHaveBeenCalledWith('::error::To append new forbidden lints, use the `forbid` action input.\n');
+
+    mockStdout.mockReset();
+
+    // deny
+    resetEnv();
+    setInput('deny', 'unused_mut');
+    setInput('args', '-Dunused_mut,-Dboxed_local');
+
+    inputs = getInputs();
+    expect(inputs).toBeNull();
+    expect(mockStdout).toHaveBeenCalledOnce();
+    expect(mockStdout).toHaveBeenCalledWith('::error::To append new deny lints, use the `deny` action input.\n');
+
+    // you get the jist
+});
+
+// See: https://github.com/actions/toolkit/blob/a1b068ec31a042ff1e10a522d8fdf0b8869d53ca/packages/core/src/core.ts#L89
+function getInputName(name: string) {
+    return `INPUT_${name.replace(/ /g, '_').toUpperCase()}`;
+}
+
+function setInput(name: keyof Inputs, value: string) {
+    process.env[getInputName(name)] = value;
+}

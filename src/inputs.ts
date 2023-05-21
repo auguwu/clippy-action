@@ -19,6 +19,7 @@ import { error, getInput, type InputOptions } from '@actions/core';
 import z from 'zod';
 
 const inputSchema = z.object({
+    'working-directory': z.string().optional(),
     'all-features': z.boolean().default(false),
     forbid: z.array(z.string()).default([]),
     allow: z.array(z.string()).default([]),
@@ -45,6 +46,7 @@ const getBooleanInput = (name: string, options: InputOptions) => {
 
 export const getInputs = (): Inputs | null => {
     const allFeatures = getBooleanInput('all-features', { trimWhitespace: true });
+    const workingDirectory = getInput('working-directory', { trimWhitespace: true });
     const allow = getInput('allow', { trimWhitespace: true })
         .split(',')
         .map((s) => s.trim());
@@ -85,12 +87,18 @@ export const getInputs = (): Inputs | null => {
         return null;
     }
 
+    if (args.some((s) => s.includes('--message-format'))) {
+        error('Do not use `--message-format` in arguments, this action will fail.');
+        return null;
+    }
+
     return {
+        'working-directory': workingDirectory === '' ? undefined : workingDirectory,
         'all-features': allFeatures,
-        forbid,
-        allow,
-        deny,
-        warn,
-        args
+        forbid: forbid.filter(String),
+        allow: allow.filter(String),
+        deny: deny.filter(String),
+        warn: warn.filter(String),
+        args: args.filter(String)
     };
 };

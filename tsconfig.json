@@ -5,7 +5,9 @@
         "typeRoots": ["./node_modules/@types"],
         "types": ["node"],
         "skipLibCheck": true,
-        "baseUrl": "."
+        "baseUrl": ".",
+        "target": "ESNext",
+        "module": "ESNext"
     },
     "exclude": ["node_modules"],
     "include": ["**/*.ts", "**/*.spec.ts"]
