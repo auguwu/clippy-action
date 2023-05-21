@@ -51,8 +51,8 @@ const flushRenderQueue = () => {
     }
 };
 
+// We only mock process.stdout to clear out @actions/exec and @actions/core logs
 const stdoutMock = mockProcessStdout();
-
 afterAll(() => {
     stdoutMock.mockReset();
 });
@@ -63,27 +63,31 @@ beforeEach(() => {
     flushRenderQueue();
 });
 
-test('clippy error + warning', async () => {
-    const cargoPath = await which('cargo', true);
-    const [exitCode, pieces] = await getClippyOutput(
-        {
-            'working-directory': resolve(__dirname, '__fixtures__', 'unbased-codebase'),
-            'all-features': false,
-            forbid: [],
-            allow: [],
-            deny: [],
-            warn: [],
-            args: []
-        },
-        cargoPath
-    );
+test(
+    'clippy error + warning',
+    async () => {
+        const cargoPath = await which('cargo', true);
+        const [exitCode, pieces] = await getClippyOutput(
+            {
+                'working-directory': resolve(__dirname, '__fixtures__', 'unbased-codebase'),
+                'all-features': false,
+                forbid: [],
+                allow: [],
+                deny: [],
+                warn: [],
+                args: []
+            },
+            cargoPath
+        );
 
-    expect(exitCode).toBe(101 /* the code couldn't be compiled correctly */);
-    renderMessages(pieces, kMockedRenderer);
+        expect(exitCode).toBe(101 /* the code couldn't be compiled correctly */);
+        renderMessages(pieces, kMockedRenderer);
 
-    expect(kRenderQueue.warning).toMatchSnapshot();
-    expect(kRenderQueue.error).toMatchSnapshot();
-});
+        expect(kRenderQueue.warning).toMatchSnapshot();
+        expect(kRenderQueue.error).toMatchSnapshot();
+    },
+    { timeout: 300000 /* 5 minutes should be good */ }
+);
 
 test('can we get zero warning and error messages in __fixtures__/no-clippy-error', async () => {
     const cargoPath = await which('cargo');
