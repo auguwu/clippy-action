@@ -15,20 +15,11 @@
  * limitations under the License.
  */
 
-import {
-    type AnnotationProperties,
-    group,
-    info,
-    error,
-    warning,
-    debug,
-    startGroup,
-    endGroup,
-    summary
-} from '@actions/core';
+import { type AnnotationProperties, info, error, warning, debug, startGroup, endGroup, summary } from '@actions/core';
 import { assertIsError, hasOwnProperty } from '@noelware/utils';
 import { type ExecOptions, exec } from '@actions/exec';
 import type { Inputs } from './inputs';
+import { arch, os } from './os-info';
 
 // We only use a renderer so we can mock it in tests
 export interface Renderer {
@@ -213,8 +204,11 @@ export const renderMessages = async (pieces: string[], renderer: Renderer = kDef
     // Don't write out a summary when we are doing tests
     if (process.env.VITEST !== 'true' && renderer === kDefaultRenderer) {
         const r = renderer as DefaultRenderer;
+        const currentOs = os.get();
+        const currentArch = arch.get();
+
         await summary
-            .addHeading('Clippy Result')
+            .addHeading(`[${currentOs} ${currentArch}] Clippy Result`)
             .addTable([
                 [
                     { data: 'Title', header: true },

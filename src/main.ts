@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { endGroup, error, startGroup } from '@actions/core';
+import { endGroup, error, info, startGroup } from '@actions/core';
 import { getInputs } from './inputs';
 import * as clippy from './clippy';
 import { which } from '@actions/io';
@@ -41,6 +41,7 @@ async function main() {
     const [exitCode, pieces] = await clippy.getClippyOutput(inputs, cargoPath);
     await clippy.renderMessages(pieces);
 
+    info(`Clippy exited with code ${exitCode}`);
     process.exitCode = exitCode;
 }
 

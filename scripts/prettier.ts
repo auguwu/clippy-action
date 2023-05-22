@@ -47,19 +47,23 @@ run(async () => {
 
     for (const file of files) {
         const start = Date.now();
-        const fileInfo = await getFileInfo(file, { resolveConfig: true });
+        const fileInfo = await getFileInfo(file, {
+            resolveConfig: true,
+            ignorePath: resolve(__dirname, '..', '.prettierignore')
+        });
+
         const contents = await readFile(file, 'utf-8');
         if (fileInfo.ignored || fileInfo.inferredParser === null) {
             continue;
         }
 
-        log.await(`   ./${relative(process.cwd(), file)}`);
+        log.await(`   ${relative(process.cwd(), file)}`);
         const source = format(contents, {
             ...config,
             parser: fileInfo.inferredParser!
         });
 
         await writeFile(resolve(process.cwd(), file), source, { encoding: 'utf-8' });
-        log.success(`   ./${file} [${Date.now() - start}ms]`);
+        log.success(`   ${file} [${Date.now() - start}ms]`);
     }
 });
