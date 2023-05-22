@@ -81,7 +81,7 @@ test(
         );
 
         expect(exitCode).toBe(101 /* the code couldn't be compiled correctly */);
-        renderMessages(pieces, kMockedRenderer);
+        await renderMessages(pieces, kMockedRenderer);
 
         expect(kRenderQueue.warning).toMatchSnapshot();
         expect(kRenderQueue.error).toMatchSnapshot();
@@ -105,6 +105,7 @@ test('can we get zero warning and error messages in __fixtures__/no-clippy-error
     );
 
     expect(exitCode).toBe(0);
-    renderMessages(pieces, kMockedRenderer);
+    await renderMessages(pieces, kMockedRenderer);
+
     expect(kRenderQueue).toMatchSnapshot();
 });

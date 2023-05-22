@@ -21,7 +21,7 @@ import * as clippy from './clippy';
 import { which } from '@actions/io';
 
 async function main() {
-    const inputs = getInputs();
+    const inputs = await getInputs();
     if (inputs === null) {
         process.exit(1);
     }
@@ -39,7 +39,7 @@ async function main() {
     }
 
     const [exitCode, pieces] = await clippy.getClippyOutput(inputs, cargoPath);
-    clippy.renderMessages(pieces);
+    await clippy.renderMessages(pieces);
 
     process.exitCode = exitCode;
 }

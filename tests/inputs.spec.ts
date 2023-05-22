@@ -33,8 +33,8 @@ beforeEach(() => {
     resetEnv();
 });
 
-test('resolve default inputs', () => {
-    const inputs = getInputs();
+test('resolve default inputs', async () => {
+    const inputs = await getInputs();
     expect(inputs).not.toBeNull();
 
     expect(inputs!['working-directory']).toBeUndefined();
@@ -46,13 +46,13 @@ test('resolve default inputs', () => {
     expect(inputs!.args.length).toBe(0);
 });
 
-test("don't resolve invalid inputs", () => {
+test("don't resolve invalid inputs", async () => {
     // forbid
     const mockStdout = mockProcessStdout();
     setInput('forbid', 'unused_mut');
     setInput('args', '-Funused_mut');
 
-    let inputs = getInputs();
+    let inputs = await getInputs();
     expect(inputs).toBeNull();
     expect(mockStdout).toHaveBeenCalledOnce();
     expect(mockStdout).toHaveBeenCalledWith('::error::To append new forbidden lints, use the `forbid` action input.\n');
@@ -64,7 +64,7 @@ test("don't resolve invalid inputs", () => {
     setInput('deny', 'unused_mut');
     setInput('args', '-Dunused_mut,-Dboxed_local');
 
-    inputs = getInputs();
+    inputs = await getInputs();
     expect(inputs).toBeNull();
     expect(mockStdout).toHaveBeenCalledOnce();
     expect(mockStdout).toHaveBeenCalledWith('::error::To append new deny lints, use the `deny` action input.\n');

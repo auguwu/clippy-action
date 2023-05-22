@@ -15,7 +15,17 @@
  * limitations under the License.
  */
 
-import { type AnnotationProperties, group, info, error, warning, debug, startGroup, endGroup } from '@actions/core';
+import {
+    type AnnotationProperties,
+    group,
+    info,
+    error,
+    warning,
+    debug,
+    startGroup,
+    endGroup,
+    summary
+} from '@actions/core';
 import { assertIsError, hasOwnProperty } from '@noelware/utils';
 import { type ExecOptions, exec } from '@actions/exec';
 import type { Inputs } from './inputs';
@@ -27,11 +37,25 @@ export interface Renderer {
     info(message: string): void;
 }
 
-const kDefaultRenderer: Renderer = {
-    warning,
-    error,
-    info
-};
+class DefaultRenderer implements Renderer {
+    annotations: (AnnotationProperties & { rendered: string })[] = [];
+
+    warning(message: string, properties: AnnotationProperties) {
+        this.annotations.push({ ...properties, rendered: message });
+        warning(message, properties);
+    }
+
+    error(message: string, properties: AnnotationProperties) {
+        this.annotations.push({ ...properties, rendered: message });
+        error(message, properties);
+    }
+
+    info(message: string) {
+        info(message);
+    }
+}
+
+const kDefaultRenderer = new DefaultRenderer();
 
 export const getClippyOutput = async (
     inputs: Inputs,
@@ -40,6 +64,9 @@ export const getClippyOutput = async (
     startGroup('Executing `cargo clippy`...');
 
     const args = ['clippy', '--message-format', 'json'];
+    if (inputs['all-features']) {
+        args.push('--all-features');
+    }
 
     if (inputs.forbid.length) {
         args.push(...inputs.forbid.map((forbid) => `-F${forbid}`));
@@ -87,7 +114,7 @@ export const getClippyOutput = async (
     return [exitCode, data];
 };
 
-export const renderMessages = (pieces: string[], renderer: Renderer = kDefaultRenderer) => {
+export const renderMessages = async (pieces: string[], renderer: Renderer = kDefaultRenderer) => {
     for (const piece of pieces) {
         const data = JSON.parse(piece);
         if (!hasOwnProperty(data, 'reason')) {
@@ -177,9 +204,26 @@ export const renderMessages = (pieces: string[], renderer: Renderer = kDefaultRe
                                 } satisfies AnnotationProperties)
                       ];
 
-            method.apply(null, args);
+            method.apply(renderer, args);
         } else {
             method(message.rendered);
         }
+    }
+
+    // Don't write out a summary when we are doing tests
+    if (process.env.VITEST !== 'true' && renderer === kDefaultRenderer) {
+        const r = renderer as DefaultRenderer;
+        await summary
+            .addHeading('Clippy Result')
+            .addTable([
+                [
+                    { data: 'Title', header: true },
+                    { data: 'Message', header: true },
+                    { data: 'File', header: true }
+                ],
+                ...r.annotations.map((annot) => [annot.title!, `\`\`\`rs\n${annot.rendered}\`\`\``, annot.file!])
+            ])
+            .addEOL()
+            .write();
     }
 };

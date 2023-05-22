@@ -44,7 +44,7 @@ const getBooleanInput = (name: string, options: InputOptions) => {
     );
 };
 
-export const getInputs = (): Inputs | null => {
+export const getInputs = async (): Promise<Inputs | null> => {
     const allFeatures = getBooleanInput('all-features', { trimWhitespace: true });
     const workingDirectory = getInput('working-directory', { trimWhitespace: true });
     const allow = getInput('allow', { trimWhitespace: true })
@@ -92,7 +92,7 @@ export const getInputs = (): Inputs | null => {
         return null;
     }
 
-    return {
+    return inputSchema.parseAsync({
         'working-directory': workingDirectory === '' ? undefined : workingDirectory,
         'all-features': allFeatures,
         forbid: forbid.filter(String),
@@ -100,5 +100,5 @@ export const getInputs = (): Inputs | null => {
         deny: deny.filter(String),
         warn: warn.filter(String),
         args: args.filter(String)
-    };
+    });
 };
