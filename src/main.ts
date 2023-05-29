@@ -19,6 +19,7 @@ import { endGroup, error, info, startGroup } from '@actions/core';
 import { getOctokit, context } from '@actions/github';
 import { getInputs } from './inputs';
 import * as clippy from './clippy';
+import * as osInfo from './os-info';
 import { which } from '@actions/io';
 
 async function main() {
@@ -58,6 +59,8 @@ async function main() {
     await clippy.renderMessages(pieces);
 
     const annotations = clippy.kDefaultRenderer.annotations;
+    const os = osInfo.os.get();
+    const arch = osInfo.arch.get();
     await client.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
         check_run_id: id,
         owner: context.repo.owner,
@@ -66,7 +69,7 @@ async function main() {
         output:
             exitCode === 0
                 ? {
-                      title: 'Clippy Result',
+                      title: `Clippy (${os} ${arch})`,
                       summary: 'Clippy ran successfully!',
                       annotations: annotations.map((anno) => ({
                           annotation_level: anno.level === 'error' ? ('failure' as const) : ('warning' as const),
@@ -80,7 +83,7 @@ async function main() {
                       }))
                   }
                 : {
-                      title: 'Clippy failed',
+                      title: `Clippy (${os} ${arch})`,
                       summary: `Running \`cargo clippy\` failed with exit code ${exitCode}`,
                       annotations: annotations.map((anno) => ({
                           annotation_level: anno.level === 'error' ? ('failure' as const) : ('warning' as const),
