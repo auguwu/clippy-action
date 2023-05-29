@@ -30,7 +30,7 @@ on:
             - 'renovate.json'
 
     pull_request:
-        types: [synchronize]
+        types: [opened, synchronize]
         paths-ignore:
             - '.vscode/**'
             - '.husky/**'
