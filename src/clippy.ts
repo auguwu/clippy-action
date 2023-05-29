@@ -29,15 +29,15 @@ export interface Renderer {
 }
 
 class DefaultRenderer implements Renderer {
-    annotations: (AnnotationProperties & { rendered: string })[] = [];
+    annotations: (AnnotationProperties & { level: 'error' | 'warning'; rendered: string })[] = [];
 
     warning(message: string, properties: AnnotationProperties) {
-        this.annotations.push({ ...properties, rendered: message });
+        this.annotations.push({ ...properties, level: 'warning', rendered: message });
         warning(message, properties);
     }
 
     error(message: string, properties: AnnotationProperties) {
-        this.annotations.push({ ...properties, rendered: message });
+        this.annotations.push({ ...properties, level: 'error', rendered: message });
         error(message, properties);
     }
 
@@ -46,7 +46,7 @@ class DefaultRenderer implements Renderer {
     }
 }
 
-const kDefaultRenderer = new DefaultRenderer();
+export const kDefaultRenderer = new DefaultRenderer();
 
 export const getClippyOutput = async (
     inputs: Inputs,
@@ -157,7 +157,7 @@ export const renderMessages = async (pieces: string[], renderer: Renderer = kDef
                     'Received a internal compiler error OR an unknown message type, view this in debug mode to view the payload'
                 );
 
-                debug(piece);
+                error(piece);
                 process.exit(1);
         }
 
@@ -199,25 +199,5 @@ export const renderMessages = async (pieces: string[], renderer: Renderer = kDef
         } else {
             method(message.rendered);
         }
-    }
-
-    // Don't write out a summary when we are doing tests
-    if (process.env.VITEST !== 'true' && renderer === kDefaultRenderer) {
-        const r = renderer as DefaultRenderer;
-        const currentOs = os.get();
-        const currentArch = arch.get();
-
-        await summary
-            .addHeading(`[${currentOs} ${currentArch}] Clippy Result`)
-            .addTable([
-                [
-                    { data: 'Title', header: true },
-                    { data: 'Message', header: true },
-                    { data: 'File', header: true }
-                ],
-                ...r.annotations.map((annot) => [annot.title!, `\`\`\`rs\n${annot.rendered}\`\`\``, annot.file!])
-            ])
-            .addEOL()
-            .write();
     }
 };

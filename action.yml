@@ -51,3 +51,6 @@ inputs:
         description: Valid, relative or absolute path to the working directory to execute `cargo clippy` from.
         default: ''
         required: false
+    token:
+        description: GitHub token for authenticating requests to GitHub
+        required: true

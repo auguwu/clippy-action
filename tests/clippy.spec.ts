@@ -71,6 +71,7 @@ test(
             {
                 'working-directory': resolve(__dirname, '__fixtures__', 'unbased-codebase'),
                 'all-features': false,
+                'github-token': 'blahblahblah',
                 forbid: [],
                 allow: [],
                 deny: [],
@@ -95,6 +96,7 @@ test('can we get zero warning and error messages in __fixtures__/no-clippy-error
         {
             'working-directory': resolve(__dirname, '__fixtures__', 'no-clippy-error'),
             'all-features': false,
+            'github-token': 'blahblahblah',
             forbid: [],
             allow: [],
             deny: [],

@@ -21,6 +21,7 @@ import z from 'zod';
 const inputSchema = z.object({
     'working-directory': z.string().optional(),
     'all-features': z.boolean().default(false),
+    'github-token': z.string(),
     forbid: z.array(z.string()).default([]),
     allow: z.array(z.string()).default([]),
     deny: z.array(z.string()).default([]),
@@ -47,6 +48,12 @@ const getBooleanInput = (name: string, options: InputOptions) => {
 export const getInputs = async (): Promise<Inputs | null> => {
     const allFeatures = getBooleanInput('all-features', { trimWhitespace: true });
     const workingDirectory = getInput('working-directory', { trimWhitespace: true });
+    const githubToken = getInput('token', { trimWhitespace: true });
+    if (githubToken === '') {
+        error('Missing required `token` input');
+        return null;
+    }
+
     const allow = getInput('allow', { trimWhitespace: true })
         .split(',')
         .map((s) => s.trim());
@@ -95,6 +102,7 @@ export const getInputs = async (): Promise<Inputs | null> => {
     return inputSchema.parseAsync({
         'working-directory': workingDirectory === '' ? undefined : workingDirectory,
         'all-features': allFeatures,
+        'github-token': githubToken,
         forbid: forbid.filter(String),
         allow: allow.filter(String),
         deny: deny.filter(String),
