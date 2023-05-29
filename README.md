@@ -18,7 +18,7 @@ jobs:
                   components: clippy
             - uses: auguwu/clippy-action@1.1.0
               with:
-                token: ${{secrets.GITHUB_TOKEN}}
+                  token: ${{secrets.GITHUB_TOKEN}}
 ```
 
 ## License

@@ -43,14 +43,12 @@ async function main() {
     }
 
     // Create a check
-    const now = new Date().toISOString();
     const {
         data: { id }
     } = await client.request('POST /repos/{owner}/{repo}/check-runs', {
         owner: context.repo.owner,
         repo: context.repo.repo,
 
-        started_at: now,
         name: 'Clippy',
         head_sha: context.payload.pull_request !== undefined ? context.payload.pull_request.head.sha : context.sha,
         status: 'in_progress'
@@ -64,23 +62,37 @@ async function main() {
         check_run_id: id,
         owner: context.repo.owner,
         repo: context.repo.repo,
-
-        started_at: now,
-        completed_at: new Date().toISOString(),
-        output: {
-            title: 'Clippy Result',
-            summary: `Clippy exited with code ${exitCode}`,
-            annotations: annotations.map((anno) => ({
-                annotation_level: anno.level === 'error' ? ('failure' as const) : ('warning' as const),
-                path: anno.file!,
-                start_line: anno.startLine!,
-                end_line: anno.endLine!,
-                start_column: anno.startColumn,
-                end_column: anno.endColumn,
-                raw_details: anno.rendered,
-                message: anno.title!
-            }))
-        }
+        conclusion: exitCode === 0 ? 'success' : 'failure',
+        output:
+            exitCode === 0
+                ? {
+                      title: 'Clippy Result',
+                      summary: 'Clippy ran successfully!',
+                      annotations: annotations.map((anno) => ({
+                          annotation_level: anno.level === 'error' ? ('failure' as const) : ('warning' as const),
+                          path: anno.file!,
+                          start_line: anno.startLine!,
+                          end_line: anno.endLine!,
+                          start_column: anno.startColumn,
+                          end_column: anno.endColumn,
+                          raw_details: anno.rendered,
+                          message: anno.title!
+                      }))
+                  }
+                : {
+                      title: 'Clippy failed',
+                      summary: `Running \`cargo clippy\` failed with exit code ${exitCode}`,
+                      annotations: annotations.map((anno) => ({
+                          annotation_level: anno.level === 'error' ? ('failure' as const) : ('warning' as const),
+                          path: anno.file!,
+                          start_line: anno.startLine!,
+                          end_line: anno.endLine!,
+                          start_column: anno.startColumn,
+                          end_column: anno.endColumn,
+                          raw_details: anno.rendered,
+                          message: anno.title!
+                      }))
+                  }
     });
 
     info(`Clippy exited with code ${exitCode}`);
