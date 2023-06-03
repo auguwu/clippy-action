@@ -51,7 +51,7 @@ async function main() {
     });
 
     let id: number | null = null;
-    if (data.total_count === 0 || data.check_runs.filter((s) => s.name.toLowerCase() !== 'clippy').length === 0) {
+    if (!data.check_runs.filter((s) => s.name.toLowerCase() !== 'clippy').length) {
         // Create a check
         const { data } = await client.request('POST /repos/{owner}/{repo}/check-runs', {
             owner: context.repo.owner,
