@@ -27,12 +27,12 @@ const resetEnv = () => {
 
         return acc;
     }, {});
+
+    setInput('github-token', 'waffle');
 };
 
 beforeEach(() => {
     resetEnv();
-
-    setInput('github-token', 'waffle');
 });
 
 test('resolve default inputs', async () => {
@@ -51,7 +51,6 @@ test('resolve default inputs', async () => {
 test("don't resolve invalid inputs", async () => {
     // forbid
     const mockStdout = mockProcessStdout();
-    setInput('github-token', 'waffle');
     setInput('forbid', 'unused_mut');
     setInput('args', '-Funused_mut');
 
@@ -64,7 +63,6 @@ test("don't resolve invalid inputs", async () => {
 
     // deny
     resetEnv();
-    setInput('github-token', 'waffle');
     setInput('deny', 'unused_mut');
     setInput('args', '-Dunused_mut,-Dboxed_local');
 

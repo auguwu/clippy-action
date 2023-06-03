@@ -43,17 +43,27 @@ async function main() {
         endGroup();
     }
 
-    // Create a check
-    const {
-        data: { id }
-    } = await client.request('POST /repos/{owner}/{repo}/check-runs', {
+    const ref = context.payload.pull_request !== undefined ? context.payload.pull_request.head.sha : context.sha;
+    const { data } = await client.request('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', {
         owner: context.repo.owner,
         repo: context.repo.repo,
-
-        name: 'Clippy',
-        head_sha: context.payload.pull_request !== undefined ? context.payload.pull_request.head.sha : context.sha,
-        status: 'in_progress'
+        ref
     });
+
+    let id: number | null = null;
+    if (data.total_count === 0 || data.check_runs.filter((s) => s.name.toLowerCase() !== 'clippy').length === 0) {
+        // Create a check
+        const { data } = await client.request('POST /repos/{owner}/{repo}/check-runs', {
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+
+            name: 'Clippy',
+            head_sha: ref,
+            status: 'in_progress'
+        });
+
+        id = data.id;
+    }
 
     const [exitCode, pieces] = await clippy.getClippyOutput(inputs, cargoPath);
     await clippy.renderMessages(pieces);
@@ -61,42 +71,45 @@ async function main() {
     const annotations = clippy.kDefaultRenderer.annotations;
     const os = osInfo.os.get();
     const arch = osInfo.arch.get();
-    await client.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
-        check_run_id: id,
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        conclusion: exitCode === 0 ? 'success' : 'failure',
-        output:
-            exitCode === 0
-                ? {
-                      title: `Clippy (${os} ${arch})`,
-                      summary: 'Clippy ran successfully!',
-                      annotations: annotations.map((anno) => ({
-                          annotation_level: anno.level === 'error' ? ('failure' as const) : ('warning' as const),
-                          path: anno.file!,
-                          start_line: anno.startLine!,
-                          end_line: anno.endLine!,
-                          start_column: anno.startColumn,
-                          end_column: anno.endColumn,
-                          raw_details: anno.rendered,
-                          message: anno.title!
-                      }))
-                  }
-                : {
-                      title: `Clippy (${os} ${arch})`,
-                      summary: `Running \`cargo clippy\` failed with exit code ${exitCode}`,
-                      annotations: annotations.map((anno) => ({
-                          annotation_level: anno.level === 'error' ? ('failure' as const) : ('warning' as const),
-                          path: anno.file!,
-                          start_line: anno.startLine!,
-                          end_line: anno.endLine!,
-                          start_column: anno.startColumn,
-                          end_column: anno.endColumn,
-                          raw_details: anno.rendered,
-                          message: anno.title!
-                      }))
-                  }
-    });
+
+    if (id !== null) {
+        await client.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
+            check_run_id: id,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            conclusion: exitCode === 0 ? 'success' : 'failure',
+            output:
+                exitCode === 0
+                    ? {
+                          title: `Clippy (${os} ${arch})`,
+                          summary: 'Clippy ran successfully!',
+                          annotations: annotations.map((anno) => ({
+                              annotation_level: anno.level === 'error' ? ('failure' as const) : ('warning' as const),
+                              path: anno.file!,
+                              start_line: anno.startLine!,
+                              end_line: anno.endLine!,
+                              start_column: anno.startColumn,
+                              end_column: anno.endColumn,
+                              raw_details: anno.rendered,
+                              message: anno.title!
+                          }))
+                      }
+                    : {
+                          title: `Clippy (${os} ${arch})`,
+                          summary: `Running \`cargo clippy\` failed with exit code ${exitCode}`,
+                          annotations: annotations.map((anno) => ({
+                              annotation_level: anno.level === 'error' ? ('failure' as const) : ('warning' as const),
+                              path: anno.file!,
+                              start_line: anno.startLine!,
+                              end_line: anno.endLine!,
+                              start_column: anno.startColumn,
+                              end_column: anno.endColumn,
+                              raw_details: anno.rendered,
+                              message: anno.title!
+                          }))
+                      }
+        });
+    }
 
     info(`Clippy exited with code ${exitCode}`);
     process.exitCode = exitCode;
