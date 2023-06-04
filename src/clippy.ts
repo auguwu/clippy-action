@@ -79,7 +79,6 @@ export const getClippyOutput = async (
     const execOptions: ExecOptions = {
         ignoreReturnCode: true,
         failOnStdErr: false,
-        silent: true,
         listeners: {
             stdline(piece) {
                 try {
