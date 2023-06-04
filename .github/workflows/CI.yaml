@@ -25,6 +25,7 @@ on:
             - '.husky/**'
             - '.eslintignore'
             - '.gitignore'
+            - 'build/**'
             - '**.md'
             - 'LICENSE'
             - 'renovate.json'
