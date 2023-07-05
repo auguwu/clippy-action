@@ -35,7 +35,7 @@
         "@vercel/ncc": "0.36.1",
         "eslint": "8.44.0",
         "eslint-config-prettier": "8.8.0",
-        "globby": "13.2.1",
+        "globby": "13.2.2",
         "prettier": "3.0.0",
         "rimraf": "5.0.1",
         "signale": "1.4.0",
