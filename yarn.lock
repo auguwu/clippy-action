@@ -69,7 +69,7 @@ __metadata:
     "@actions/io": 1.1.3
     "@augu/eslint-config": 4.0.1
     "@augu/tsconfig": 1.1.1
-    "@noelware/utils": 2.3.0
+    "@noelware/utils": 2.4.0
     "@types/eslint": 8.44.0
     "@types/node": 20.4.2
     "@types/prettier": 2.7.3
@@ -466,10 +466,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noelware/utils@npm:2.3.0":
-  version: 2.3.0
-  resolution: "@noelware/utils@npm:2.3.0"
-  checksum: 901b25643bbb39bc355981de6124d4c0ab548cd14718b786eb587d2cfa70f9ac921ae5a3f0431f8dee209cfa7782e074d4db5bf5dd634c4d678920b96ffb6cd8
+"@noelware/utils@npm:2.4.0":
+  version: 2.4.0
+  resolution: "@noelware/utils@npm:2.4.0"
+  checksum: 09a488aa1cd5802c8c9d3c7a7e280e2e1a64b0b5c75ecb9fd4999ea13ef04fc77d489cbf8fd74530460d8d4acefd5affe7faa7fb03f95355cf4b68e337ebbe0f
   languageName: node
   linkType: hard
 
