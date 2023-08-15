@@ -83,14 +83,26 @@ test(
 
         expect(exitCode).toBe(101 /* the code couldn't be compiled correctly */);
         await renderMessages(pieces, kMockedRenderer);
+        expect(kRenderQueue.warning.length).toBe(1);
+        expect(kRenderQueue.error.length).toBe(1);
+        expect(kRenderQueue.info.length).toBe(0);
 
-        expect(kRenderQueue.warning).toMatchSnapshot();
-        expect(kRenderQueue.error).toMatchSnapshot();
+        const warning = kRenderQueue.warning[0];
+        expect(warning.length).toBe(1);
+
+        const warningInfo = warning[0];
+        expect(warningInfo.rendered).toContain('warning: variable does not');
+
+        const error = kRenderQueue.error[0];
+        expect(error.length).toBe(1);
+
+        const errorInfo = error[0];
+        expect(errorInfo.rendered).toContain('error: equal expressions as operands to `==`');
     },
     { timeout: 300000 /* 5 minutes should be good */ }
 );
 
-test('can we get zero warning and error messages in __fixtures__/no-clippy-error', async () => {
+test('can we get no warning and error messages in __fixtures__/no-clippy-error', async () => {
     const cargoPath = await which('cargo');
     const [exitCode, pieces] = await getClippyOutput(
         {

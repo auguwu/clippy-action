@@ -80,7 +80,6 @@ async function main() {
     await clippy.renderMessages(pieces);
 
     const annotations = clippy.kDefaultRenderer.annotations;
-
     if (hasPerms && id !== null) {
         const os = osInfo.os.get();
         const arch = osInfo.arch.get();

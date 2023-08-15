@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-import { type AnnotationProperties, info, error, warning, debug, startGroup, endGroup, summary } from '@actions/core';
+import { type AnnotationProperties, info, error, warning, debug, startGroup, endGroup } from '@actions/core';
 import { assertIsError, hasOwnProperty } from '@noelware/utils';
 import { type ExecOptions, exec } from '@actions/exec';
 import type { Inputs } from './inputs';
-import { arch, os } from './os-info';
 
 // We only use a renderer so we can mock it in tests
 export interface Renderer {
@@ -47,7 +46,6 @@ class DefaultRenderer implements Renderer {
 }
 
 export const kDefaultRenderer = new DefaultRenderer();
-
 export const getClippyOutput = async (
     inputs: Inputs,
     cargoPath: string
@@ -79,10 +77,13 @@ export const getClippyOutput = async (
         args.push(...inputs.allow.map((allowed) => `-A${allowed}`));
     }
 
+    info(`$ ${cargoPath} ${args.join(' ')}`);
+
     const data: string[] = [];
     const execOptions: ExecOptions = {
         ignoreReturnCode: true,
         failOnStdErr: false,
+        silent: false,
         listeners: {
             stdline(piece) {
                 try {
@@ -201,7 +202,7 @@ export const renderMessages = async (pieces: string[], renderer: Renderer = kDef
 
             method.apply(renderer, args);
         } else {
-            method(message.rendered);
+            method.apply(renderer, message.rendered);
         }
     }
 };
