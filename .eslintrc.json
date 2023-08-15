@@ -7,6 +7,12 @@
             "extends": ["prettier", "@augu/eslint-config/ts.js"],
             "parserOptions": {
                 "project": "./tsconfig.json"
+            },
+            "rules": {
+                "@typescript-eslint/no-useless-constructor": "off",
+                "@typescript-eslint/dot-notation": "off",
+                "@typescript-eslint/no-throw-literal": "off",
+                "@typescript-eslint/await-thenable": "off"
             }
         },
         {
@@ -14,6 +20,12 @@
             "extends": ["prettier", "@augu/eslint-config/ts.js"],
             "parserOptions": {
                 "project": "./scripts/tsconfig.json"
+            },
+            "rules": {
+                "@typescript-eslint/no-useless-constructor": "off",
+                "@typescript-eslint/dot-notation": "off",
+                "@typescript-eslint/no-throw-literal": "off",
+                "@typescript-eslint/await-thenable": "off"
             }
         }
     ]

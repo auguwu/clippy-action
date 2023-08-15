@@ -17,6 +17,7 @@
 
 import { readFile, writeFile } from 'fs/promises';
 import { relative, resolve } from 'path';
+import * as prettier from 'prettier';
 import { globby } from 'globby';
 import getLogger from './util/log';
 import assert from 'assert';
@@ -28,12 +29,7 @@ const ext = ['.json', '.yaml', '.yml', '.js', '.md', '.ts'] as const;
 run(async () => {
     log.info('Resolving Prettier configuration...');
 
-    const {
-        format,
-        default: { resolveConfig, getFileInfo }
-    } = await import('prettier');
-
-    const config = await resolveConfig(resolve(process.cwd(), '.prettierrc.json'));
+    const config = await prettier.resolveConfig(resolve(process.cwd(), '.prettierrc.json'));
     assert(config !== null, ".prettierrc.json doesn't exist?");
 
     const files = await globby(
@@ -47,7 +43,7 @@ run(async () => {
 
     for (const file of files) {
         const start = Date.now();
-        const fileInfo = await getFileInfo(file, {
+        const fileInfo = await prettier.getFileInfo(file, {
             resolveConfig: true,
             ignorePath: resolve(__dirname, '..', '.prettierignore')
         });
@@ -58,7 +54,7 @@ run(async () => {
         }
 
         log.await(`   ${relative(process.cwd(), file)}`);
-        const source = format(contents, {
+        const source = await prettier.format(contents, {
             ...config,
             parser: fileInfo.inferredParser!
         });

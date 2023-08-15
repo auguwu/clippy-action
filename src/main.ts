@@ -44,14 +44,25 @@ async function main() {
     }
 
     const ref = context.payload.pull_request !== undefined ? context.payload.pull_request.head.sha : context.sha;
-    const { data } = await client.request('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', {
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        ref
-    });
+    let hasPerms = true;
+    let data: any;
+
+    try {
+        const { data: _data } = await client.request('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', {
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref
+        });
+
+        data = _data;
+    } catch (ex) {
+        error("clippy-action doesn't have permissions to view Check Runs, disabling");
+        hasPerms = false;
+        data = null;
+    }
 
     let id: number | null = null;
-    if (!data.check_runs.filter((s) => s.name.toLowerCase() !== 'clippy').length) {
+    if (hasPerms && !data.check_runs.filter((s) => s.name.toLowerCase() !== 'clippy').length) {
         // Create a check
         const { data } = await client.request('POST /repos/{owner}/{repo}/check-runs', {
             owner: context.repo.owner,
@@ -69,10 +80,10 @@ async function main() {
     await clippy.renderMessages(pieces);
 
     const annotations = clippy.kDefaultRenderer.annotations;
-    const os = osInfo.os.get();
-    const arch = osInfo.arch.get();
 
-    if (id !== null) {
+    if (hasPerms && id !== null) {
+        const os = osInfo.os.get();
+        const arch = osInfo.arch.get();
         await client.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
             check_run_id: id,
             owner: context.repo.owner,

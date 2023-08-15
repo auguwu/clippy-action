@@ -32,7 +32,7 @@ export const os = new Lazy(() => {
             return 'FreeBSD';
 
         case 'haiku':
-            return 'Haiku';
+            return 'HaikuOS';
 
         case 'linux':
             return 'Linux';

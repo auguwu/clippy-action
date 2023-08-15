@@ -59,6 +59,10 @@ export const getClippyOutput = async (
         args.push('--all-features');
     }
 
+    if (inputs.args.length) {
+        args.push('--', ...inputs.args);
+    }
+
     if (inputs.forbid.length) {
         args.push(...inputs.forbid.map((forbid) => `-F${forbid}`));
     }
