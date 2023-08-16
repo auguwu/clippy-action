@@ -85,14 +85,14 @@ export const getClippyOutput = async (
     const execOptions: ExecOptions = {
         ignoreReturnCode: true,
         failOnStdErr: false,
-        silent: false,
+        silent: true,
         listeners: {
             stdline(piece) {
                 try {
                     JSON.parse(piece);
                     data.push(piece);
                 } catch (e) {
-                    assertIsError(e);
+                    console.log(piece);
                 }
             }
         }
@@ -180,26 +180,14 @@ export const renderMessages = async (pieces: string[], renderer: Renderer = kDef
                     ? [message.rendered]
                     : [
                           message.rendered,
-
-                          // We shouldn't include file as tests will be flaky
-                          // in CI, so it'll only show up if it was
-                          // actually ran.
-                          process.env.VITEST === 'true'
-                              ? ({
-                                    startColumn: primarySpan.column_start,
-                                    endColumn: primarySpan.column_end,
-                                    startLine: primarySpan.line_start,
-                                    endLine: primarySpan.line_end,
-                                    title: message.message
-                                } satisfies AnnotationProperties)
-                              : ({
-                                    startColumn: primarySpan.column_start,
-                                    endColumn: primarySpan.column_end,
-                                    startLine: primarySpan.line_start,
-                                    endLine: primarySpan.line_end,
-                                    title: message.message,
-                                    file: data.target.src_path
-                                } satisfies AnnotationProperties)
+                          {
+                              startColumn: primarySpan.column_start,
+                              endColumn: primarySpan.column_end,
+                              startLine: primarySpan.line_start,
+                              endLine: primarySpan.line_end,
+                              title: message.message,
+                              file: data.target.src_path
+                          } satisfies AnnotationProperties
                       ];
 
             method.apply(renderer, args);

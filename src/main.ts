@@ -123,9 +123,9 @@ async function main() {
                                       : annotation.level === 'warning'
                                       ? ('warning' as const)
                                       : ('notice' as const),
-                              path: annotation.file!,
-                              start_line: annotation.startLine!,
-                              end_line: annotation.endLine!,
+                              path: annotation.file || './file/that/probably/doesnt/exist.rs',
+                              start_line: annotation.startLine || 0,
+                              end_line: annotation.endLine || 0,
                               start_column: annotation.startColumn,
                               end_column: annotation.endColumn,
                               raw_details: annotation.rendered,
@@ -149,9 +149,9 @@ async function main() {
                                       : annotation.level === 'warning'
                                       ? ('warning' as const)
                                       : ('notice' as const),
-                              path: annotation.file!,
-                              start_line: annotation.startLine!,
-                              end_line: annotation.endLine!,
+                              path: annotation.file || './file/that/probably/doesnt/exist.rs',
+                              start_line: annotation.startLine || 0,
+                              end_line: annotation.endLine || 0,
                               start_column: annotation.startColumn,
                               end_column: annotation.endColumn,
                               raw_details: annotation.rendered,
