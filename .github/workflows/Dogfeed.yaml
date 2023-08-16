@@ -40,6 +40,8 @@ on:
             - '**.md'
             - 'LICENSE'
             - 'renovate.json'
+permissions:
+    checks: write
 jobs:
     lint:
         name: Dogfeed

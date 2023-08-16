@@ -16,9 +16,16 @@ jobs:
             - uses: dtolnay/rust-toolchain@stable
               with:
                   components: clippy
-            - uses: auguwu/clippy-action@1.2.0
+            - uses: auguwu/clippy-action@1.2.1
               with:
                   token: ${{secrets.GITHUB_TOKEN}}
+```
+
+This action does allow writing check runs for Clippy results. To enable it, you will need to add this to your workflow:
+
+```yaml
+permissions:
+    checks: write
 ```
 
 ## License
