@@ -66,30 +66,20 @@ async function main() {
     const startedAt = new Date();
 
     try {
-        const { data } = await client.request('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', {
+        const { data: newRunData } = await client.request('POST /repos/{owner}/{repo}/check-runs', {
             owner: context.repo.owner,
             repo: context.repo.repo,
-            ref: sha
+            name: `Clippy Result (${toolchain.toLowerCase()}${
+                inputs['working-directory'] !== undefined ? ` (${inputs['working-directory']})` : ''
+            })`,
+            head_sha: sha,
+            status: 'in_progress',
+            started_at: startedAt.toISOString()
         });
 
-        const run = data.check_runs.find((run) => run.name.toLowerCase().startsWith('clippy result ('));
-        if (run !== undefined) {
-            id = run.id;
-            info(`Re-using check run [${run.id}]`);
-        } else {
-            const { data: newRunData } = await client.request('POST /repos/{owner}/{repo}/check-runs', {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                name: `Clippy Result (${toolchain.toLowerCase()})`,
-                head_sha: sha,
-                status: 'in_progress',
-                started_at: startedAt.toISOString()
-            });
-
-            id = newRunData.id;
-            canPerformCheckRun = true;
-            info(`Created check run with ID [${id}]`);
-        }
+        id = newRunData.id;
+        canPerformCheckRun = true;
+        info(`Created check run with ID [${id}]`);
     } catch (e) {
         warning("clippy-action doesn't have permissions to view Check Runs, disabling!");
         warning(e instanceof Error ? e.message : JSON.stringify(e, null, 4));
@@ -120,7 +110,8 @@ async function main() {
                 exitCode === 0
                     ? {
                           title: `Clippy (${toolchain} ~ ${os}/${arch})`,
-                          summary: 'Clippy was successful',
+                          summary: 'Clippy was successful!',
+                          text: '',
                           annotations: renderer.annotations.map((annotation) => ({
                               annotation_level:
                                   annotation.level === 'error'
