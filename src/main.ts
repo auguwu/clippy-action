@@ -87,6 +87,7 @@ async function main() {
             });
 
             id = newRunData.id;
+            canPerformCheckRun = true;
             info(`Created check run with ID [${id}]`);
         }
     } catch (e) {
