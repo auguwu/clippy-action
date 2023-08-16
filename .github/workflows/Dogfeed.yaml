@@ -48,6 +48,12 @@ jobs:
             - name: Checkout the repository
               uses: actions/checkout@v3
 
+            - name: Setup Rust toolchain
+              uses: dtolnay/rust-toolchain@master
+              with:
+                  toolchain: stable
+                  components: clippy, rustfmt
+
             - name: Run clippy (__fixtures__/no-clippy-error)
               uses: ./
               with:
