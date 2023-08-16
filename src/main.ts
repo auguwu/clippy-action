@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { endGroup, error, info, setFailed, startGroup, warning } from '@actions/core';
+import { endGroup, error, info, setFailed, startGroup, summary, warning } from '@actions/core';
 import { getOctokit, context } from '@actions/github';
 import { getExecOutput } from '@actions/exec';
 import { assertIsError } from '@noelware/utils';
@@ -87,6 +87,8 @@ async function main() {
         }
     } catch (e) {
         warning("clippy-action doesn't have permissions to view Check Runs, disabling!");
+        warning(e instanceof Error ? e.message : JSON.stringify(e, null, 4));
+
         canPerformCheckRun = false;
     }
 
