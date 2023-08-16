@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { endGroup, error, info, setFailed, startGroup, summary, warning } from '@actions/core';
+import { debug, endGroup, error, info, setFailed, startGroup, summary, warning } from '@actions/core';
 import { getOctokit, context } from '@actions/github';
 import { getExecOutput } from '@actions/exec';
 import { assertIsError } from '@noelware/utils';
@@ -63,6 +63,7 @@ async function main() {
     const sha = context.sha;
     let canPerformCheckRun = false;
     let id: number | null = null;
+    const startedAt = new Date();
 
     try {
         const { data } = await client.request('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', {
@@ -81,7 +82,8 @@ async function main() {
                 repo: context.repo.repo,
                 name: `Clippy Result (${toolchain.toLowerCase()})`,
                 head_sha: sha,
-                status: 'in_progress'
+                status: 'in_progress',
+                started_at: startedAt.toISOString()
             });
 
             id = newRunData.id;
@@ -102,11 +104,17 @@ async function main() {
     const arch = osInfo.arch.get();
 
     if (canPerformCheckRun && id !== null) {
-        await client.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
+        const { data } = await client.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
             check_run_id: id,
             owner: context.repo.owner,
             repo: context.repo.repo,
+
+            // @ts-expect-error why is this: "status?: undefined"
+            status: 'completed',
             conclusion: exitCode === 0 ? 'success' : 'failure',
+            started_at: startedAt.toISOString(),
+            completed_at: new Date().toISOString(),
+            name: `Clippy Result (${toolchain.toLowerCase()})`,
             output:
                 exitCode === 0
                     ? {
@@ -148,6 +156,8 @@ async function main() {
                           }))
                       }
         });
+
+        debug(JSON.stringify(data));
     }
 
     info(`Clippy exited with code ${exitCode}`);
