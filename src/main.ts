@@ -58,7 +58,6 @@ async function main() {
     }
 
     const toolchain = patch.endsWith('-nightly') ? 'Nightly' : patch.endsWith('-beta') ? 'Beta' : 'Stable';
-
     const client = getOctokit(inputs['github-token']);
     const sha = context.sha;
     let canPerformCheckRun = false;
@@ -69,9 +68,9 @@ async function main() {
         const { data: newRunData } = await client.request('POST /repos/{owner}/{repo}/check-runs', {
             owner: context.repo.owner,
             repo: context.repo.repo,
-            name: `Clippy Result (${toolchain.toLowerCase()}${
-                inputs['working-directory'] !== undefined ? ` (${inputs['working-directory']})` : ''
-            })`,
+            name: `Clippy Result (${toolchain.toLowerCase()})${
+                inputs['working-directory'] !== undefined ? ` in ${inputs['working-directory']}` : ''
+            }`,
             head_sha: sha,
             status: 'in_progress',
             started_at: startedAt.toISOString()
@@ -93,8 +92,8 @@ async function main() {
     const renderer = clippy.kDefaultRenderer;
     const os = osInfo.os.get();
     const arch = osInfo.arch.get();
-
     if (canPerformCheckRun && id !== null) {
+        const completed = new Date();
         const { data } = await client.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
             check_run_id: id,
             owner: context.repo.owner,
@@ -104,14 +103,19 @@ async function main() {
             status: 'completed',
             conclusion: exitCode === 0 ? 'success' : 'failure',
             started_at: startedAt.toISOString(),
-            completed_at: new Date().toISOString(),
-            name: `Clippy Result (${toolchain.toLowerCase()})`,
+            completed_at: completed.toISOString(),
             output:
                 exitCode === 0
                     ? {
                           title: `Clippy (${toolchain} ~ ${os}/${arch})`,
                           summary: 'Clippy was successful!',
-                          text: '',
+                          text: [
+                              `Running \`cargo clippy\` took roughly ~${
+                                  completed.getTime() - startedAt.getTime()
+                              }ms to complete`,
+                              '',
+                              `* Working Directory: ${inputs['working-directory'] || 'repository directory'}`
+                          ].join('\n'),
                           annotations: renderer.annotations.map((annotation) => ({
                               annotation_level:
                                   annotation.level === 'error'
@@ -131,6 +135,13 @@ async function main() {
                     : {
                           title: `Clippy (${toolchain} ~ ${os}/${arch})`,
                           summary: 'Clippy failed.',
+                          text: [
+                              `Running \`cargo clippy\` took roughly ~${
+                                  completed.getTime() - startedAt.getTime()
+                              }ms to complete`,
+                              '',
+                              `* Working Directory: ${inputs['working-directory'] || 'repository directory'}`
+                          ].join('\n'),
                           annotations: renderer.annotations.map((annotation) => ({
                               annotation_level:
                                   annotation.level === 'error'
@@ -157,8 +168,9 @@ async function main() {
 }
 
 main().catch((ex) => {
-    const error: Error & { why: Error } = new Error('@augu/clippy-action failed to run.') as any;
-    error.why = ex;
+    const error = new Error(
+        `@augu/clippy-action failed to run: ${ex instanceof Error ? ex.message : JSON.stringify(ex, null, 4)}`
+    );
 
     setFailed(error);
     process.exit(1);
