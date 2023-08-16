@@ -94,6 +94,9 @@ export const getClippyOutput = async (
                 } catch (e) {
                     console.log(piece);
                 }
+            },
+            errline(data) {
+                console.error(data);
             }
         }
     };
