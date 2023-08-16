@@ -28,7 +28,7 @@ export interface Renderer {
 }
 
 class DefaultRenderer implements Renderer {
-    annotations: (AnnotationProperties & { level: 'error' | 'warning'; rendered: string })[] = [];
+    annotations: (AnnotationProperties & { level: 'error' | 'warning' | 'info'; rendered: string })[] = [];
 
     warning(message: string, properties: AnnotationProperties) {
         this.annotations.push({ ...properties, level: 'warning', rendered: message });
@@ -41,6 +41,7 @@ class DefaultRenderer implements Renderer {
     }
 
     info(message: string) {
+        this.annotations.push({ level: 'info', rendered: message });
         info(message);
     }
 }
@@ -83,7 +84,7 @@ export const getClippyOutput = async (
     const execOptions: ExecOptions = {
         ignoreReturnCode: true,
         failOnStdErr: false,
-        silent: false,
+        silent: true,
         listeners: {
             stdline(piece) {
                 try {
@@ -162,7 +163,7 @@ export const renderMessages = async (pieces: string[], renderer: Renderer = kDef
                     'Received a internal compiler error OR an unknown message type, view this in debug mode to view the payload'
                 );
 
-                error(piece);
+                error(message.rendered);
                 process.exit(1);
         }
 
@@ -202,7 +203,7 @@ export const renderMessages = async (pieces: string[], renderer: Renderer = kDef
 
             method.apply(renderer, args);
         } else {
-            method.apply(renderer, message.rendered);
+            method.apply(renderer, [message.rendered, { title: message.message }]);
         }
     }
 };

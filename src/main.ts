@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
-import { endGroup, error, info, startGroup } from '@actions/core';
+import { endGroup, error, info, setFailed, startGroup } from '@actions/core';
 import { getOctokit, context } from '@actions/github';
+import { getExecOutput } from '@actions/exec';
+import { assertIsError } from '@noelware/utils';
 import { getInputs } from './inputs';
 import * as clippy from './clippy';
 import * as osInfo from './os-info';
@@ -24,65 +26,78 @@ import { which } from '@actions/io';
 
 async function main() {
     const inputs = await getInputs();
-    if (inputs === null) {
-        process.exit(1);
-    }
+    if (inputs === null) process.exit(1);
 
-    const client = getOctokit(inputs['github-token']);
-
-    startGroup('Checking if `cargo` exists...');
+    startGroup('Check if `cargo` exists');
     let cargoPath: string;
-
     try {
         cargoPath = await which('cargo', true);
-        info(`Cargo exists in path [${cargoPath}]`);
+        info(`Found \`cargo\` binary in path [${cargoPath}]`);
     } catch (e) {
-        error("Tool doesn't exist, please add a valid Rust toolchain.");
+        assertIsError(e);
+        error("Cargo tool doesn't exist. Please add a step to install a valid Rust toolchain.");
+
         process.exit(1);
     } finally {
         endGroup();
     }
 
-    const ref = context.payload.pull_request !== undefined ? context.payload.pull_request.head.sha : context.sha;
-    let hasPerms = true;
-    let data: any;
+    startGroup('Collecting rustc information...');
+    let version: string;
 
-    try {
-        const { data: _data } = await client.request('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', {
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            ref
-        });
+    {
+        const { stdout } = await getExecOutput('rustc', ['--version']);
+        version = stdout.slice('rustc '.length);
 
-        data = _data;
-    } catch (ex) {
-        error("clippy-action doesn't have permissions to view Check Runs, disabling");
-        hasPerms = false;
-        data = null;
+        endGroup();
     }
 
+    const patch = version.split('.').at(-1);
+    if (patch === undefined) {
+        process.exit(1);
+    }
+
+    const toolchain = patch.endsWith('-nightly') ? 'Nightly' : patch.endsWith('-beta') ? 'Beta' : 'Stable';
+
+    const client = getOctokit(inputs['github-token']);
+    const sha = context.sha;
+    let canPerformCheckRun = false;
     let id: number | null = null;
-    if (hasPerms && !data.check_runs.filter((s) => s.name.toLowerCase() !== 'clippy').length) {
-        // Create a check
-        const { data } = await client.request('POST /repos/{owner}/{repo}/check-runs', {
+
+    try {
+        const { data } = await client.request('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', {
             owner: context.repo.owner,
             repo: context.repo.repo,
-
-            name: 'Clippy',
-            head_sha: ref,
-            status: 'in_progress'
+            ref: sha
         });
 
-        id = data.id;
+        const run = data.check_runs.find((run) => run.name.toLowerCase().startsWith('clippy result ('));
+        if (run !== undefined) {
+            id = run.id;
+        } else {
+            const { data: newRunData } = await client.request('POST /repos/{owner}/{repo}/check-runs', {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: `Clippy Result (${toolchain})`,
+                head_sha: sha,
+                status: 'in_progress'
+            });
+
+            id = newRunData.id;
+        }
+    } catch (e) {
+        error("clippy-action doesn't have permissions to view Check Runs, disabling!");
+        canPerformCheckRun = false;
     }
 
     const [exitCode, pieces] = await clippy.getClippyOutput(inputs, cargoPath);
     await clippy.renderMessages(pieces);
 
-    const annotations = clippy.kDefaultRenderer.annotations;
-    if (hasPerms && id !== null) {
-        const os = osInfo.os.get();
-        const arch = osInfo.arch.get();
+    const renderer = clippy.kDefaultRenderer;
+    const os = osInfo.os.get();
+    const arch = osInfo.arch.get();
+
+    if (canPerformCheckRun && id !== null) {
         await client.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
             check_run_id: id,
             owner: context.repo.owner,
@@ -91,31 +106,41 @@ async function main() {
             output:
                 exitCode === 0
                     ? {
-                          title: `Clippy (${os} ${arch})`,
-                          summary: 'Clippy ran successfully!',
-                          annotations: annotations.map((anno) => ({
-                              annotation_level: anno.level === 'error' ? ('failure' as const) : ('warning' as const),
-                              path: anno.file!,
-                              start_line: anno.startLine!,
-                              end_line: anno.endLine!,
-                              start_column: anno.startColumn,
-                              end_column: anno.endColumn,
-                              raw_details: anno.rendered,
-                              message: anno.title!
+                          title: `Clippy (${toolchain} ~ ${os}/${arch})`,
+                          summary: 'Clippy was successful',
+                          annotations: renderer.annotations.map((annotation) => ({
+                              annotation_level:
+                                  annotation.level === 'error'
+                                      ? ('failure' as const)
+                                      : annotation.level === 'warning'
+                                      ? ('warning' as const)
+                                      : ('notice' as const),
+                              path: annotation.file!,
+                              start_line: annotation.startLine!,
+                              end_line: annotation.endLine!,
+                              start_column: annotation.startColumn,
+                              end_column: annotation.endColumn,
+                              raw_details: annotation.rendered,
+                              message: annotation.title!
                           }))
                       }
                     : {
-                          title: `Clippy (${os} ${arch})`,
-                          summary: `Running \`cargo clippy\` failed with exit code ${exitCode}`,
-                          annotations: annotations.map((anno) => ({
-                              annotation_level: anno.level === 'error' ? ('failure' as const) : ('warning' as const),
-                              path: anno.file!,
-                              start_line: anno.startLine!,
-                              end_line: anno.endLine!,
-                              start_column: anno.startColumn,
-                              end_column: anno.endColumn,
-                              raw_details: anno.rendered,
-                              message: anno.title!
+                          title: `Clippy (${toolchain} ~ ${os}/${arch})`,
+                          summary: 'Clippy failed.',
+                          annotations: renderer.annotations.map((annotation) => ({
+                              annotation_level:
+                                  annotation.level === 'error'
+                                      ? ('failure' as const)
+                                      : annotation.level === 'warning'
+                                      ? ('warning' as const)
+                                      : ('notice' as const),
+                              path: annotation.file!,
+                              start_line: annotation.startLine!,
+                              end_line: annotation.endLine!,
+                              start_column: annotation.startColumn,
+                              end_column: annotation.endColumn,
+                              raw_details: annotation.rendered,
+                              message: annotation.title!
                           }))
                       }
         });
@@ -126,6 +151,9 @@ async function main() {
 }
 
 main().catch((ex) => {
-    error(`Unable to run @augu/clippy-action:\n${ex}`);
+    const error: Error & { why: Error } = new Error('@augu/clippy-action failed to run.') as any;
+    error.why = ex;
+
+    setFailed(error);
     process.exit(1);
 });

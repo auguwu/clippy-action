@@ -1,0 +1,65 @@
+# 🐻‍❄️📦 clippy-action: GitHub action to run Clippy, an up-to-date and modern version of actions-rs/clippy
+# Copyright 2023 Noel Towa <cutie@floofy.dev>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Dogfeed
+on:
+    workflow_dispatch:
+    push:
+        branches:
+            - master
+        paths-ignore:
+            - '.github/**'
+            - '.vscode/**'
+            - '.husky/**'
+            - '.eslintignore'
+            - '.gitignore'
+            - 'build/**'
+            - '**.md'
+            - 'LICENSE'
+            - 'renovate.json'
+
+    pull_request:
+        types: [opened, synchronize]
+        paths-ignore:
+            - '.vscode/**'
+            - '.husky/**'
+            - '.eslintignore'
+            - '.gitignore'
+            - '**.md'
+            - 'LICENSE'
+            - 'renovate.json'
+jobs:
+    lint:
+        name: Dogfeed
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout the repository
+              uses: actions/checkout@v3
+
+            - name: Run clippy (__fixtures__/no-clippy-error)
+              uses: ./
+              with:
+                  working-directory: ./tests/__fixtures__/no-clippy-error
+                  all-features: true
+                  token: ${{github.token}}
+                  deny: warnings
+
+            - name: Run clippy (__fixtures__/unbased-codebase)
+              uses: ./
+              with:
+                  working-directory: ./tests/__fixtures__/unbased-codebase
+                  all-features: true
+                  allow: clippy::eq_op
+                  token: ${{github.token}}
