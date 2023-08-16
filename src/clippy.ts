@@ -190,22 +190,14 @@ export const renderMessages = async (pieces: string[], renderer: Renderer = kDef
                                     endColumn: primarySpan.column_end,
                                     startLine: primarySpan.line_start,
                                     endLine: primarySpan.line_end,
-                                    title: `${
-                                        message.level === 'error'
-                                            ? `error[${message.code.code}]`
-                                            : `warning[${message.message.code}]`
-                                    }: ${message.message}`
+                                    title: message.message
                                 } satisfies AnnotationProperties)
                               : ({
                                     startColumn: primarySpan.column_start,
                                     endColumn: primarySpan.column_end,
                                     startLine: primarySpan.line_start,
                                     endLine: primarySpan.line_end,
-                                    title: `${
-                                        message.level === 'error'
-                                            ? `error[${message.code.code}]`
-                                            : `warning[${message.message.code}]`
-                                    }: ${message.message}`,
+                                    title: message.message,
                                     file: data.target.src_path
                                 } satisfies AnnotationProperties)
                       ];
@@ -215,9 +207,7 @@ export const renderMessages = async (pieces: string[], renderer: Renderer = kDef
             method.apply(renderer, [
                 message.rendered,
                 {
-                    title: `${
-                        message.level === 'error' ? `error[${message.code.code}]` : `warning[${message.message.code}]`
-                    }: ${message.message}`
+                    title: message.message
                 }
             ]);
         }

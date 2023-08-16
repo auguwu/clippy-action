@@ -74,16 +74,18 @@ async function main() {
         const run = data.check_runs.find((run) => run.name.toLowerCase().startsWith('clippy result ('));
         if (run !== undefined) {
             id = run.id;
+            info(`Re-using check run [${run.id}]`);
         } else {
             const { data: newRunData } = await client.request('POST /repos/{owner}/{repo}/check-runs', {
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                name: `Clippy Result (${toolchain})`,
+                name: `Clippy Result (${toolchain.toLowerCase()})`,
                 head_sha: sha,
                 status: 'in_progress'
             });
 
             id = newRunData.id;
+            info(`Created check run with ID [${id}]`);
         }
     } catch (e) {
         warning("clippy-action doesn't have permissions to view Check Runs, disabling!");
