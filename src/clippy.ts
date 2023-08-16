@@ -84,7 +84,7 @@ export const getClippyOutput = async (
     const execOptions: ExecOptions = {
         ignoreReturnCode: true,
         failOnStdErr: false,
-        silent: true,
+        silent: false,
         listeners: {
             stdline(piece) {
                 try {
@@ -92,10 +92,6 @@ export const getClippyOutput = async (
                     data.push(piece);
                 } catch (e) {
                     assertIsError(e);
-
-                    // we don't care if invalid json
-                    // was passed, we won't include it
-                    // anyway.
                 }
             }
         }
@@ -116,6 +112,10 @@ export const renderMessages = async (pieces: string[], renderer: Renderer = kDef
         const data = JSON.parse(piece);
         if (!hasOwnProperty(data, 'reason')) {
             debug(`Skipping payload due to no 'reason' output\n${piece}`);
+        }
+
+        if (data.reason === 'build-finished') {
+            info(`Clippy build has completed. (is success: ${data.success})`);
         }
 
         if (!hasOwnProperty(data, 'message')) {
@@ -163,7 +163,7 @@ export const renderMessages = async (pieces: string[], renderer: Renderer = kDef
                     'Received a internal compiler error OR an unknown message type, view this in debug mode to view the payload'
                 );
 
-                error(message.rendered);
+                error(JSON.stringify(message, null, 4));
                 process.exit(1);
         }
 
@@ -189,21 +189,36 @@ export const renderMessages = async (pieces: string[], renderer: Renderer = kDef
                                     endColumn: primarySpan.column_end,
                                     startLine: primarySpan.line_start,
                                     endLine: primarySpan.line_end,
-                                    title: message.message
+                                    title: `${
+                                        message.level === 'error'
+                                            ? `error[${message.code.code}]`
+                                            : `warning[${message.message.code}]`
+                                    }: ${message.message}`
                                 } satisfies AnnotationProperties)
                               : ({
                                     startColumn: primarySpan.column_start,
                                     endColumn: primarySpan.column_end,
                                     startLine: primarySpan.line_start,
                                     endLine: primarySpan.line_end,
-                                    title: message.message,
+                                    title: `${
+                                        message.level === 'error'
+                                            ? `error[${message.code.code}]`
+                                            : `warning[${message.message.code}]`
+                                    }: ${message.message}`,
                                     file: data.target.src_path
                                 } satisfies AnnotationProperties)
                       ];
 
             method.apply(renderer, args);
         } else {
-            method.apply(renderer, [message.rendered, { title: message.message }]);
+            method.apply(renderer, [
+                message.rendered,
+                {
+                    title: `${
+                        message.level === 'error' ? `error[${message.code.code}]` : `warning[${message.message.code}]`
+                    }: ${message.message}`
+                }
+            ]);
         }
     }
 };
