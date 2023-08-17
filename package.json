@@ -8,7 +8,7 @@
     "license": "Apache-2.0",
     "repository": "https://github.com/auguwu/clippy-action",
     "bugs": "https://github.com/auguwu/clippy-action/issues/new",
-    "packageManager": "yarn@3.6.1",
+    "packageManager": "yarn@3.6.2",
     "scripts": {
         "build": "yarn fmt && yarn lint && rimraf build && ncc build src/main.ts -o build -m -C --license LICENSE",
         "lint": "tsx --tsconfig ./scripts/tsconfig.json scripts/eslint",
