@@ -41,7 +41,7 @@
         "signale": "1.4.0",
         "tsx": "3.12.7",
         "typescript": "5.2.2",
-        "vitest": "0.34.2",
+        "vitest": "0.34.3",
         "vitest-mock-process": "1.0.4"
     }
 }
