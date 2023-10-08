@@ -48,12 +48,10 @@ jobs:
             - name: Checkout the repository
               uses: actions/checkout@v4
 
-            # using v20.6+ breaks
-            # https://github.com/actions/toolkit/issues/1523
             - name: Uses Node.js 20.x
               uses: actions/setup-node@v3
               with:
-                  node-version: 20.5.1
+                  node-version: 20.x
 
             - name: Setup Yarn and node-modules cache
               id: yarn-cache

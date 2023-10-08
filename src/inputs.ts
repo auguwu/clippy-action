@@ -22,6 +22,7 @@ const inputSchema = z.object({
     'working-directory': z.string().optional(),
     'all-features': z.boolean().default(false),
     'github-token': z.string(),
+    'check-args': z.array(z.string()).default([]),
     forbid: z.array(z.string()).default([]),
     allow: z.array(z.string()).default([]),
     deny: z.array(z.string()).default([]),
@@ -74,6 +75,10 @@ export const getInputs = async (): Promise<Inputs | null> => {
         .split(',')
         .map((s) => s.trim());
 
+    const checkArgs = getInput('check-args', { trimWhitespace: true })
+        .split(',')
+        .map((s) => s.trim());
+
     if (args.some((s) => s.startsWith('-W') || s.startsWith('--warning'))) {
         error('To append new warning lints, use the `warn` action input.');
         return null;
@@ -96,6 +101,11 @@ export const getInputs = async (): Promise<Inputs | null> => {
 
     if (args.some((s) => s.includes('--message-format'))) {
         error('Do not use `--message-format` in arguments, this action will fail.');
+        return null;
+    }
+
+    if (checkArgs.some((s) => s.includes('--all-features'))) {
+        error('`--all-features` is replaced by the `all-features` argument when using the action.');
         return null;
     }
 
