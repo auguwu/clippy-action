@@ -54,30 +54,18 @@ export const getClippyOutput = async (
     startGroup('Executing `cargo clippy`...');
 
     const args = ['clippy', '--message-format', 'json'];
+    args.push(...inputs['check-args']);
+
     if (inputs['all-features']) {
         args.push('--all-features');
     }
 
     args.push('--');
-    if (inputs.args.length) {
-        args.push(...inputs.args);
-    }
-
-    if (inputs.forbid.length) {
-        args.push(...inputs.forbid.map((forbid) => `-F${forbid}`));
-    }
-
-    if (inputs.deny.length) {
-        args.push(...inputs.deny.map((deny) => `-D${deny}`));
-    }
-
-    if (inputs.warn.length) {
-        args.push(...inputs.warn.map((allowed) => `-W${allowed}`));
-    }
-
-    if (inputs.allow.length) {
-        args.push(...inputs.allow.map((allowed) => `-A${allowed}`));
-    }
+    args.push(...inputs.args);
+    args.push(...inputs.forbid.map((forbid) => `-F${forbid}`));
+    args.push(...inputs.deny.map((deny) => `-D${deny}`));
+    args.push(...inputs.warn.map((allowed) => `-W${allowed}`));
+    args.push(...inputs.allow.map((allowed) => `-A${allowed}`));
 
     info(`$ ${cargoPath} ${args.join(' ')}`);
 

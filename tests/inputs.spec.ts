@@ -40,6 +40,7 @@ test('resolve default inputs', async () => {
     expect(inputs).not.toBeNull();
 
     expect(inputs!['working-directory']).toBeUndefined();
+    expect(inputs!['check-args'].length).toBe(0);
     expect(inputs!['all-features']).toBeFalsy();
     expect(inputs!.forbid.length).toBe(0);
     expect(inputs!.allow.length).toBe(0);
@@ -71,7 +72,17 @@ test("don't resolve invalid inputs", async () => {
     expect(mockStdout).toHaveBeenCalledOnce();
     expect(mockStdout).toHaveBeenCalledWith('::error::To append new deny lints, use the `deny` action input.\n');
 
-    // you get the jist
+    mockStdout.mockReset();
+
+    resetEnv();
+    setInput('check-args', '--all-features');
+
+    inputs = await getInputs();
+    expect(inputs).toBeNull();
+    expect(mockStdout).toHaveBeenCalledOnce();
+    expect(mockStdout).toHaveBeenCalledWith(
+        '::error::`--all-features` is replaced by the `all-features` argument when using the action.\n'
+    );
 });
 
 // See: https://github.com/actions/toolkit/blob/a1b068ec31a042ff1e10a522d8fdf0b8869d53ca/packages/core/src/core.ts#L89

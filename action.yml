@@ -20,9 +20,13 @@ branding:
     color: gray-dark
     icon: cloud
 runs:
-    using: node16
+    using: node20
     main: ./build/index.js
 inputs:
+    check-args:
+        description: List of arguments to apply after `cargo clippy`, but before `--` like `--tests`.
+        default: ''
+        required: false
     warn:
         description: List (seperated by ',') of warnings to set. (eq. to the -W/--warn flag in `cargo clippy`)
         default: ''
