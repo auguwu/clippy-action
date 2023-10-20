@@ -98,8 +98,6 @@ async function main() {
             check_run_id: id,
             owner: context.repo.owner,
             repo: context.repo.repo,
-
-            // @ts-expect-error why is this: "status?: undefined"
             status: 'completed',
             conclusion: exitCode === 0 ? 'success' : 'failure',
             started_at: startedAt.toISOString(),
