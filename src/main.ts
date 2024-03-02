@@ -1,6 +1,6 @@
 /*
  * 🐻‍❄️📦 clippy-action: GitHub action to run Clippy, an up-to-date and modern version of actions-rs/clippy
- * Copyright 2023 Noel Towa <cutie@floofy.dev>
+ * Copyright 2023-2024 Noel Towa <cutie@floofy.dev>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import { debug, endGroup, error, info, setFailed, startGroup, summary, warning } from '@actions/core';
+import { startGroup, setFailed, endGroup, warning, debug, error, info } from '@actions/core';
 import { getOctokit, context } from '@actions/github';
-import { getExecOutput } from '@actions/exec';
 import { assertIsError } from '@noelware/utils';
+import { getExecOutput } from '@actions/exec';
 import { getInputs } from './inputs';
-import * as clippy from './clippy';
 import * as osInfo from './os-info';
 import { which } from '@actions/io';
+import * as clippy from './clippy';
 
 async function main() {
     const inputs = await getInputs();
@@ -61,7 +61,7 @@ async function main() {
     const client = getOctokit(inputs['github-token']);
     const sha = context.sha;
     let canPerformCheckRun = false;
-    let id: number | null = null;
+    let id: null | number = null;
     const startedAt = new Date();
 
     try {
@@ -119,8 +119,8 @@ async function main() {
                                   annotation.level === 'error'
                                       ? ('failure' as const)
                                       : annotation.level === 'warning'
-                                      ? ('warning' as const)
-                                      : ('notice' as const),
+                                        ? ('warning' as const)
+                                        : ('notice' as const),
                               path: annotation.file || './file/that/probably/doesnt/exist.rs',
                               start_line: annotation.startLine || 0,
                               end_line: annotation.endLine || 0,
@@ -145,8 +145,8 @@ async function main() {
                                   annotation.level === 'error'
                                       ? ('failure' as const)
                                       : annotation.level === 'warning'
-                                      ? ('warning' as const)
-                                      : ('notice' as const),
+                                        ? ('warning' as const)
+                                        : ('notice' as const),
                               path: annotation.file || './file/that/probably/doesnt/exist.rs',
                               start_line: annotation.startLine || 0,
                               end_line: annotation.endLine || 0,

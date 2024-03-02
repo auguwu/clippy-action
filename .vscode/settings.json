@@ -1,7 +1,16 @@
 {
     "editor.tabSize": 4,
     "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "eslint.experimental.useFlatConfig": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    },
     "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     }
 }

@@ -1,6 +1,6 @@
 /*
  * 🐻‍❄️📦 clippy-action: GitHub action to run Clippy, an up-to-date and modern version of actions-rs/clippy
- * Copyright 2023 Noel Towa <cutie@floofy.dev>
+ * Copyright 2023-2024 Noel Towa <cutie@floofy.dev>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,15 @@
  * limitations under the License.
  */
 
+import config from '@augu/eslint-config';
 import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
-import { Lazy } from '@noelware/utils';
 
-/** Alias for CommonJS' `__filename` */
-export const __filename = new Lazy(() => fileURLToPath(import.meta.url));
+/** @type {import('@augu/eslint-config').default} */
+const noel = typeof Bun !== 'undefined' ? config : config.default;
 
-/** Alias for CommonJS' `__dirname` */
-export const __dirname = new Lazy(() => dirname(resolve(__filename.get(), '..')));
+export default noel({
+    perfectionist: true,
+    typescript: {
+        tsconfig: fileURLToPath(new URL('tsconfig.json', import.meta.url))
+    }
+});

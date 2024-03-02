@@ -1,6 +1,6 @@
 /*
  * 🐻‍❄️📦 clippy-action: GitHub action to run Clippy, an up-to-date and modern version of actions-rs/clippy
- * Copyright 2023 Noel Towa <cutie@floofy.dev>
+ * Copyright 2023-2024 Noel Towa <cutie@floofy.dev>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,51 +15,98 @@
  * limitations under the License.
  */
 
-import { readFile, writeFile } from 'fs/promises';
-import { relative, resolve } from 'path';
+import { Stopwatch } from '@noelware/utils';
+import * as log from './util/logging';
 import * as prettier from 'prettier';
-import { globby } from 'globby';
-import getLogger from './util/log';
-import assert from 'assert';
-import run from './util/run';
+import * as colors from 'colorette';
+import { resolve } from 'node:path';
 
-const log = getLogger('prettier');
-const ext = ['.json', '.yaml', '.yml', '.js', '.md', '.ts'] as const;
+async function main() {
+    const ROOT = Bun.fileURLToPath(new URL('..', import.meta.url));
+    log.info(`root directory: ${ROOT}`);
 
-run(async () => {
-    log.info('Resolving Prettier configuration...');
+    const config = await prettier.resolveConfig(resolve(ROOT, '.prettierrc.json'));
+    if (config === null) {
+        throw new Error(`was unable to resolve Prettier config in [${resolve(ROOT, '.prettierrc.json')}] ?!`);
+    }
 
-    const config = await prettier.resolveConfig(resolve(process.cwd(), '.prettierrc.json'));
-    assert(config !== null, ".prettierrc.json doesn't exist?");
+    const glob = new Bun.Glob('**/*.{ts,js,md,yaml,yml,json}');
+    log.startGroup('formatting!');
 
-    const files = await globby(
-        ext.map((f) => `**/*${f}`),
-        {
-            onlyFiles: true,
-            throwErrorOnBrokenSymbolicLink: true,
-            gitignore: true
-        }
-    );
-
-    for (const file of files) {
-        const start = Date.now();
-        const fileInfo = await prettier.getFileInfo(file, {
-            resolveConfig: true,
-            ignorePath: resolve(__dirname, '..', '.prettierignore')
-        });
-
-        const contents = await readFile(file, 'utf-8');
-        if (fileInfo.ignored || fileInfo.inferredParser === null) {
+    let failed = false;
+    for await (const file of glob.scan({ cwd: ROOT })) {
+        if (file.includes('node_modules') || file.includes('build')) {
             continue;
         }
 
-        log.await(`   ${relative(process.cwd(), file)}`);
-        const source = await prettier.format(contents, {
-            ...config,
-            parser: fileInfo.inferredParser!
-        });
+        const sw = Stopwatch.createStarted();
+        log.info(
+            `${colors.isColorSupported ? colors.bold(colors.magenta('START')) : 'START'}   ${resolve(ROOT, file)}`
+        );
 
-        await writeFile(resolve(process.cwd(), file), source, { encoding: 'utf-8' });
-        log.success(`   ${file} [${Date.now() - start}ms]`);
+        // lazily create a Bun.File, which we will use later
+        const fileObj = Bun.file(resolve(ROOT, file));
+        const info = await prettier.getFileInfo(resolve(ROOT, file));
+        if (info.inferredParser === null) {
+            log.warn(
+                `${colors.isColorSupported ? colors.bold(colors.gray('IGNORED')) : 'IGNORED'}   ${resolve(
+                    ROOT,
+                    file
+                )} ${colors.isColorSupported ? colors.bold(`[${sw.stop()}]`) : `[${sw.stop()}]`}`
+            );
+
+            continue;
+        }
+
+        const contents = await fileObj.text();
+        if (log.ci) {
+            const correct = await prettier.check(contents, {
+                parser: info.inferredParser,
+                ...config
+            });
+
+            if (!correct) {
+                log.error(
+                    `${
+                        colors.isColorSupported ? colors.bold(colors.red('FAILED')) : 'FAILED'
+                    } file was not properly formatted. run \`bun run fmt\` outside of CI ${
+                        colors.isColorSupported ? colors.bold(`[${sw.stop()}]`) : `[${sw.stop()}]`
+                    }`,
+                    {
+                        file: resolve(ROOT, file)
+                    }
+                );
+
+                failed = true;
+                break;
+            }
+
+            log.info(
+                `${colors.isColorSupported ? colors.bold(colors.magenta('END')) : 'END'}     ${resolve(ROOT, file)} ${
+                    colors.isColorSupported ? colors.bold(`[${sw.stop()}]`) : ''
+                }`
+            );
+        } else {
+            const formatted = await prettier.format(contents, {
+                parser: info.inferredParser,
+                ...config
+            });
+
+            await Bun.write(fileObj, formatted, { createPath: false });
+
+            log.info(
+                `${colors.isColorSupported ? colors.bold(colors.magenta('END')) : 'END'}     ${resolve(ROOT, file)} ${
+                    colors.isColorSupported ? colors.bold(`[${sw.stop()}]`) : ''
+                }`
+            );
+        }
     }
+
+    log.endGroup();
+    process.exit(failed ? 1 : 0);
+}
+
+main().catch((ex) => {
+    log.error(ex);
+    process.exit(1);
 });

@@ -1,6 +1,6 @@
 /*
  * 🐻‍❄️📦 clippy-action: GitHub action to run Clippy, an up-to-date and modern version of actions-rs/clippy
- * Copyright 2023 Noel Towa <cutie@floofy.dev>
+ * Copyright 2023-2024 Noel Towa <cutie@floofy.dev>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { type AnnotationProperties, info, error, warning, debug, startGroup, endGroup } from '@actions/core';
-import { assertIsError, hasOwnProperty } from '@noelware/utils';
+import { type AnnotationProperties, startGroup, endGroup, warning, error, debug, info } from '@actions/core';
+import { hasOwnProperty, assertIsError } from '@noelware/utils';
 import { type ExecOptions, exec } from '@actions/exec';
 import type { Inputs } from './inputs';
 
@@ -28,7 +28,7 @@ export interface Renderer {
 }
 
 class DefaultRenderer implements Renderer {
-    annotations: (AnnotationProperties & { level: 'error' | 'warning' | 'info'; rendered: string })[] = [];
+    annotations: Array<AnnotationProperties & { level: 'error' | 'info' | 'warning'; rendered: string }> = [];
 
     warning(message: string, properties: AnnotationProperties) {
         this.annotations.push({ ...properties, level: 'warning', rendered: message });
@@ -83,8 +83,8 @@ export const getClippyOutput = async (
                     console.log(piece);
                 }
             },
-            errline(data) {
-                console.error(data);
+            stderr(data) {
+                console.error(data.toString('utf-8'));
             }
         }
     };
@@ -126,7 +126,7 @@ export const renderMessages = async (pieces: string[], renderer: Renderer = kDef
         }
 
         const message = data.message;
-        let type: 'info' | 'warning' | 'error';
+        let type: 'error' | 'info' | 'warning';
         let method: any;
 
         switch (message.level) {
@@ -160,7 +160,7 @@ export const renderMessages = async (pieces: string[], renderer: Renderer = kDef
         }
 
         // Don't log "error: aborting due to" messages
-        if (message.rendered.includes('error: aborting due to previous error')) {
+        if (message.rendered.includes('aborting due to 1 previous error')) {
             continue;
         }
 
@@ -177,7 +177,10 @@ export const renderMessages = async (pieces: string[], renderer: Renderer = kDef
                               startLine: primarySpan.line_start,
                               endLine: primarySpan.line_end,
                               title: message.message,
-                              file: data.target.src_path
+                              file:
+                                  hasOwnProperty(process.env, 'NODE_ENV') && process.env.NODE_ENV === 'test'
+                                      ? undefined
+                                      : data.target.src_path
                           } satisfies AnnotationProperties
                       ];
 

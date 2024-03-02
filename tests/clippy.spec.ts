@@ -1,6 +1,6 @@
 /*
  * 🐻‍❄️📦 clippy-action: GitHub action to run Clippy, an up-to-date and modern version of actions-rs/clippy
- * Copyright 2023 Noel Towa <cutie@floofy.dev>
+ * Copyright 2023-2024 Noel Towa <cutie@floofy.dev>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,21 @@
  * limitations under the License.
  */
 
-import { type Renderer, getClippyOutput, renderMessages } from '../src/clippy';
-import { beforeEach, test, expect, afterAll } from 'vitest';
+import { getClippyOutput, renderMessages, type Renderer } from '../src/clippy';
+import { beforeEach, afterAll, expect, test } from 'bun:test';
 import type { AnnotationProperties } from '@actions/core';
-import { mockProcessStdout } from 'vitest-mock-process';
-import { dirname, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { which } from '@actions/io';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const kRenderQueue: Record<'info' | 'warning' | 'error', [{ rendered: string; properties?: AnnotationProperties }][]> =
-    {
-        warning: [],
-        error: [],
-        info: []
-    };
+const kRenderQueue: Record<
+    'error' | 'info' | 'warning',
+    Array<[{ properties?: AnnotationProperties; rendered: string }]>
+> = {
+    warning: [],
+    error: [],
+    info: []
+};
 
 const kMockedRenderer: Renderer = {
     warning(message, properties) {
@@ -51,25 +49,13 @@ const flushRenderQueue = () => {
     }
 };
 
-// We only mock process.stdout to clear out @actions/exec and @actions/core logs
-const stdoutMock = mockProcessStdout();
-afterAll(() => {
-    stdoutMock.mockReset();
-});
-
-beforeEach(() => {
-    // Flush the renderer message queue so we get fresh instances
-    // in each test.
-    flushRenderQueue();
-});
-
 test(
-    'clippy error + warning',
+    'clippy :: error + warnings',
     async () => {
-        const cargoPath = await which('cargo', true);
+        const cargo = await which('cargo', true);
         const [exitCode, pieces] = await getClippyOutput(
             {
-                'working-directory': resolve(__dirname, '__fixtures__', 'unbased-codebase'),
+                'working-directory': resolve(import.meta.dir, '__fixtures__', 'unbased-codebase'),
                 'all-features': false,
                 'github-token': 'blahblahblah',
                 'check-args': [],
@@ -79,7 +65,7 @@ test(
                 warn: [],
                 args: []
             },
-            cargoPath
+            cargo
         );
 
         expect(exitCode).toBe(101 /* the code couldn't be compiled correctly */);
@@ -87,6 +73,7 @@ test(
         expect(kRenderQueue.warning.length).toBe(1);
         expect(kRenderQueue.error.length).toBe(1);
         expect(kRenderQueue.info.length).toBe(0);
+        expect(kRenderQueue).toMatchSnapshot();
 
         const warning = kRenderQueue.warning[0];
         expect(warning.length).toBe(1);
@@ -100,24 +87,24 @@ test(
         const errorInfo = error[0];
         expect(errorInfo.rendered).toContain('error: equal expressions as operands to `==`');
     },
-    { timeout: 300000 /* 5 minutes should be good */ }
+    { timeout: 30000 }
 );
 
-test('can we get no warning and error messages in __fixtures__/no-clippy-error', async () => {
-    const cargoPath = await which('cargo');
+test('clippy :: no warning or error messages', async () => {
+    const cargo = await which('cargo', true);
     const [exitCode, pieces] = await getClippyOutput(
         {
-            'working-directory': resolve(__dirname, '__fixtures__', 'no-clippy-error'),
+            'working-directory': resolve(import.meta.dir, '__fixtures__', 'no-clippy-error'),
             'all-features': false,
             'github-token': 'blahblahblah',
             'check-args': [],
             forbid: [],
             allow: [],
-            deny: [],
+            deny: ['warnings'],
             warn: [],
             args: []
         },
-        cargoPath
+        cargo
     );
 
     expect(exitCode).toBe(0);
