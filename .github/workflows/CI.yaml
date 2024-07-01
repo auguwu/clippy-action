@@ -15,7 +15,7 @@
 
 name: CI
 on:
-    workflow_dispatch:
+    workflow_dispatch: {}
     push:
         branches:
             - master
@@ -41,27 +41,24 @@ on:
             - 'LICENSE'
             - 'renovate.json'
 jobs:
-    lint:
-        name: Linting CI
+    linting:
+        name: Lint & Testing
         runs-on: ubuntu-latest
         steps:
-            - name: Checkout the repository
+            - name: Checkout repository
               uses: actions/checkout@v4
 
-            - name: Uses Node.js 20.x
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 20.x
-
-            - name: Setup Yarn and node-modules cache
-              id: yarn-cache
-              uses: auguwu/node-pm-action@master
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
 
             - name: Install dependencies
-              run: yarn install --immutable
+              run: bun install --frozen-lockfile
 
-            - name: Lint project with ESLint
-              run: yarn lint
+            - name: Lint project
+              run: bun run lint
 
-            - name: Run all tests
-              run: yarn test
+            - name: Format project
+              run: bun run fmt
+
+            - name: Run tests
+              run: bun test

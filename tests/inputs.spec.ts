@@ -46,42 +46,14 @@ test('resolve default inputs', async () => {
     expect(inputs!.args.length).toBe(0);
 });
 
-// TODO(@auguwu): how to mock process.stdout/stderr in bun
-// test("don't resolve invalid inputs", async () => {
-//     // forbid
-//     const mockStdout = mockProcessStdout();
-//     setInput('forbid', 'unused_mut');
-//     setInput('args', '-Funused_mut');
+// test to fix issue #268
+test('allow spaces in `args` and `check-args`', async () => {
+    setInput('args', '--no-default-features --workspace');
 
-//     let inputs = await getInputs();
-//     expect(inputs).toBeNull();
-//     expect(mockStdout).toHaveBeenCalledOnce();
-//     expect(mockStdout).toHaveBeenCalledWith('::error::To append new forbidden lints, use the `forbid` action input.\n');
-
-//     mockStdout.mockReset();
-
-//     // deny
-//     resetEnv();
-//     setInput('deny', 'unused_mut');
-//     setInput('args', '-Dunused_mut,-Dboxed_local');
-
-//     inputs = await getInputs();
-//     expect(inputs).toBeNull();
-//     expect(mockStdout).toHaveBeenCalledOnce();
-//     expect(mockStdout).toHaveBeenCalledWith('::error::To append new deny lints, use the `deny` action input.\n');
-
-//     mockStdout.mockReset();
-
-//     resetEnv();
-//     setInput('check-args', '--all-features');
-
-//     inputs = await getInputs();
-//     expect(inputs).toBeNull();
-//     expect(mockStdout).toHaveBeenCalledOnce();
-//     expect(mockStdout).toHaveBeenCalledWith(
-//         '::error::`--all-features` is replaced by the `all-features` argument when using the action.\n'
-//     );
-// });
+    const input = await getInputs();
+    expect(input).not.toBeNull();
+    expect(input!.args).toStrictEqual(['--no-default-features', '--workspace']);
+});
 
 // See: https://github.com/actions/toolkit/blob/a1b068ec31a042ff1e10a522d8fdf0b8869d53ca/packages/core/src/core.ts#L89
 function getInputName(name: string) {
