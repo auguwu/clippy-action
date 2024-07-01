@@ -72,11 +72,11 @@ export const getInputs = async (): Promise<Inputs | null> => {
         .map((s) => s.trim());
 
     const args = getInput('args', { trimWhitespace: true })
-        .split(',')
+        .split(' ')
         .map((s) => s.trim());
 
     const checkArgs = getInput('check-args', { trimWhitespace: true })
-        .split(',')
+        .split(' ')
         .map((s) => s.trim());
 
     if (args.some((s) => s.startsWith('-W') || s.startsWith('--warning'))) {

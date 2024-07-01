@@ -30,9 +30,7 @@ const resetEnv = () => {
     setInput('github-token', 'waffle');
 };
 
-beforeEach(() => {
-    resetEnv();
-});
+beforeEach(resetEnv);
 
 test('resolve default inputs', async () => {
     const inputs = await getInputs();

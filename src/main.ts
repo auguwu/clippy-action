@@ -68,7 +68,7 @@ async function main() {
         const { data: newRunData } = await client.request('POST /repos/{owner}/{repo}/check-runs', {
             owner: context.repo.owner,
             repo: context.repo.repo,
-            name: `Clippy Result (${toolchain.toLowerCase()})${
+            name: `Clippy: Rust ${toolchain} ${version}${
                 inputs['working-directory'] !== undefined ? ` in ${inputs['working-directory']}` : ''
             }`,
             head_sha: sha,
@@ -80,7 +80,7 @@ async function main() {
         canPerformCheckRun = true;
         info(`Created check run with ID [${id}]`);
     } catch (e) {
-        warning("clippy-action doesn't have permissions to view Check Runs, disabling!");
+        warning("clippy-action doesn't have permissions to create Check Runs, disabling!");
         warning(e instanceof Error ? e.message : JSON.stringify(e, null, 4));
 
         canPerformCheckRun = false;
@@ -90,8 +90,8 @@ async function main() {
     await clippy.renderMessages(pieces);
 
     const renderer = clippy.kDefaultRenderer;
-    const os = osInfo.os.get();
-    const arch = osInfo.arch.get();
+    const os = osInfo.os();
+    const arch = osInfo.arch();
     if (canPerformCheckRun && id !== null) {
         const completed = new Date();
         const { data } = await client.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
@@ -114,21 +114,23 @@ async function main() {
                               '',
                               `* Working Directory: ${inputs['working-directory'] || 'repository directory'}`
                           ].join('\n'),
-                          annotations: renderer.annotations.map((annotation) => ({
-                              annotation_level:
-                                  annotation.level === 'error'
-                                      ? ('failure' as const)
-                                      : annotation.level === 'warning'
-                                        ? ('warning' as const)
-                                        : ('notice' as const),
-                              path: annotation.file || './file/that/probably/doesnt/exist.rs',
-                              start_line: annotation.startLine || 0,
-                              end_line: annotation.endLine || 0,
-                              start_column: annotation.startColumn,
-                              end_column: annotation.endColumn,
-                              raw_details: annotation.rendered,
-                              message: annotation.title!
-                          }))
+                          annotations: renderer.annotations
+                              .filter((x) => !!x.file)
+                              .map((annotation) => ({
+                                  annotation_level:
+                                      annotation.level === 'error'
+                                          ? ('failure' as const)
+                                          : annotation.level === 'warning'
+                                            ? ('warning' as const)
+                                            : ('notice' as const),
+                                  path: annotation.file!,
+                                  start_line: annotation.startLine || 0,
+                                  end_line: annotation.endLine || 0,
+                                  start_column: annotation.startColumn,
+                                  end_column: annotation.endColumn,
+                                  raw_details: annotation.rendered,
+                                  message: annotation.title!
+                              }))
                       }
                     : {
                           title: `Clippy (${toolchain} ~ ${os}/${arch})`,
@@ -140,21 +142,23 @@ async function main() {
                               '',
                               `* Working Directory: ${inputs['working-directory'] || 'repository directory'}`
                           ].join('\n'),
-                          annotations: renderer.annotations.map((annotation) => ({
-                              annotation_level:
-                                  annotation.level === 'error'
-                                      ? ('failure' as const)
-                                      : annotation.level === 'warning'
-                                        ? ('warning' as const)
-                                        : ('notice' as const),
-                              path: annotation.file || './file/that/probably/doesnt/exist.rs',
-                              start_line: annotation.startLine || 0,
-                              end_line: annotation.endLine || 0,
-                              start_column: annotation.startColumn,
-                              end_column: annotation.endColumn,
-                              raw_details: annotation.rendered,
-                              message: annotation.title!
-                          }))
+                          annotations: renderer.annotations
+                              .filter((x) => !!x.file)
+                              .map((annotation) => ({
+                                  annotation_level:
+                                      annotation.level === 'error'
+                                          ? ('failure' as const)
+                                          : annotation.level === 'warning'
+                                            ? ('warning' as const)
+                                            : ('notice' as const),
+                                  path: annotation.file!,
+                                  start_line: annotation.startLine || 0,
+                                  end_line: annotation.endLine || 0,
+                                  start_column: annotation.startColumn,
+                                  end_column: annotation.endColumn,
+                                  raw_details: annotation.rendered,
+                                  message: annotation.title!
+                              }))
                       }
         });
 
@@ -166,9 +170,7 @@ async function main() {
 }
 
 main().catch((ex) => {
-    const error = new Error(
-        `@augu/clippy-action failed to run: ${ex instanceof Error ? ex.message : JSON.stringify(ex, null, 4)}`
-    );
+    const error = new Error('@augu/clippy-action failed to run', { cause: ex });
 
     setFailed(error);
     process.exit(1);

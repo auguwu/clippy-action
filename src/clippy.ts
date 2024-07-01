@@ -16,8 +16,8 @@
  */
 
 import { type AnnotationProperties, startGroup, endGroup, warning, error, debug, info } from '@actions/core';
-import { hasOwnProperty, assertIsError } from '@noelware/utils';
 import { type ExecOptions, exec } from '@actions/exec';
+import { hasOwnProperty } from '@noelware/utils';
 import type { Inputs } from './inputs';
 
 // We only use a renderer so we can mock it in tests

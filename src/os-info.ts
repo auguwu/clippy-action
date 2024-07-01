@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import { lazy } from '@noelware/utils';
-
-export const os = lazy(() => {
+export function os() {
     switch (process.platform) {
         case 'aix':
             return 'IBM AIX';
@@ -53,9 +51,9 @@ export const os = lazy(() => {
         default:
             return 'Unknown';
     }
-});
+}
 
-export const arch = lazy(() => {
+export function arch() {
     switch (process.arch) {
         case 'arm':
             return 'ARM';
@@ -72,4 +70,4 @@ export const arch = lazy(() => {
         default:
             return 'Unknown';
     }
-});
+}
