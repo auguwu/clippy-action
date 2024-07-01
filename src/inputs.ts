@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { type InputOptions, getInput, error } from '@actions/core';
+import { type InputOptions, getInput, error, warning } from '@actions/core';
 
 export interface Inputs {
     'working-directory'?: string;
@@ -59,9 +59,25 @@ export function getInputs(): Inputs | null {
     }
 
     const allow = getArrayInput('allow', { sep: ',' });
+    if (allow.length) {
+        warning('The `allow` input is deprecated in v1.4 and can be used within the `check-args` input');
+    }
+
     const deny = getArrayInput('deny', { sep: ',' });
+    if (deny.length) {
+        warning('The `deny` input is deprecated in v1.4 and can be used within the `check-args` input');
+    }
+
     const forbid = getArrayInput('forbid', { sep: ',' });
+    if (forbid.length) {
+        warning('The `forbid` input is deprecated in v1.4 and can be used within the `check-args` input');
+    }
+
     const warn = getArrayInput('warn', { sep: ',' });
+    if (warn.length) {
+        warning('The `warn` input is deprecated in v1.4 and can be used within the `check-args` input');
+    }
+
     const args = getArrayInput('args', { sep: ' ' });
     const checkArgs = getArrayInput('check-args', { sep: ' ' });
 
