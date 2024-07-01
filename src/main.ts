@@ -25,7 +25,7 @@ import { which } from '@actions/io';
 import * as clippy from './clippy';
 
 async function main() {
-    const inputs = await getInputs();
+    const inputs = getInputs();
     if (inputs === null) process.exit(1);
 
     startGroup('Check if `cargo` exists');

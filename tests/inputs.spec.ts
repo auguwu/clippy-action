@@ -32,11 +32,11 @@ const resetEnv = () => {
 
 beforeEach(resetEnv);
 
-test('resolve default inputs', async () => {
-    const inputs = await getInputs();
+test('resolve default inputs', () => {
+    const inputs = getInputs();
     expect(inputs).not.toBeNull();
 
-    expect(inputs!['working-directory']).toBeUndefined();
+    expect(inputs!['working-directory']).toBeEmpty();
     expect(inputs!['check-args'].length).toBe(0);
     expect(inputs!['all-features']).toBeFalsy();
     expect(inputs!.forbid.length).toBe(0);
@@ -47,10 +47,10 @@ test('resolve default inputs', async () => {
 });
 
 // test to fix issue #268
-test('allow spaces in `args` and `check-args`', async () => {
+test('allow spaces in `args` and `check-args`', () => {
     setInput('args', '--no-default-features --workspace');
 
-    const input = await getInputs();
+    const input = getInputs();
     expect(input).not.toBeNull();
     expect(input!.args).toStrictEqual(['--no-default-features', '--workspace']);
 });

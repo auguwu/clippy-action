@@ -28,23 +28,23 @@ inputs:
         default: ''
         required: false
     warn:
-        description: List (seperated by ',') of warnings to set. (eq. to the -W/--warn flag in `cargo clippy`)
+        description: List (seperated by ',') of warnings to set. (eq. to the -W/--warn flag in `cargo clippy`). Deprecated since 1.4, can be used with `check-args` instead.
         default: ''
         required: false
     allow:
-        description: List (seperated by ',') of allowed lints to set. (eq. to the -A/--allow flag in `cargo clippy`)
+        description: List (seperated by ',') of allowed lints to set. (eq. to the -A/--allow flag in `cargo clippy`). Deprecated since 1.4, can be used with `check-args` instead.
         default: ''
         required: false
     deny:
-        description: List (seperated by ',') of denied lints to set. (eq. to the -D/--deny flag in `cargo clippy`)
+        description: List (seperated by ',') of denied lints to set. (eq. to the -D/--deny flag in `cargo clippy`). Deprecated since 1.4, can be used with `check-args` instead.
         default: ''
         required: false
     forbid:
-        description: List (seperated by ',') of forbidden lints to set. (eq. to the -F/--forbid flag in `cargo clippy`)
+        description: List (seperated by ',') of forbidden lints to set. (eq. to the -F/--forbid flag in `cargo clippy`). Deprecated since 1.4, can be used with `check-args` instead.
         default: ''
         required: false
     all-features:
-        description: If the `--all-features` flag should be included
+        description: If the `--all-features` flag should be included. Deprecated since 1.4, can be used with `args` input
         default: 'false'
         required: false
     args:

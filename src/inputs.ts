@@ -16,21 +16,18 @@
  */
 
 import { type InputOptions, getInput, error } from '@actions/core';
-import z from 'zod';
 
-const inputSchema = z.object({
-    'working-directory': z.string().optional(),
-    'all-features': z.boolean().default(false),
-    'github-token': z.string(),
-    'check-args': z.array(z.string()).default([]),
-    forbid: z.array(z.string()).default([]),
-    allow: z.array(z.string()).default([]),
-    deny: z.array(z.string()).default([]),
-    args: z.array(z.string()).default([]),
-    warn: z.array(z.string()).default([])
-});
-
-export type Inputs = z.infer<typeof inputSchema>;
+export interface Inputs {
+    'working-directory'?: string;
+    'all-features': boolean;
+    'github-token': string;
+    'check-args': string[];
+    forbid: string[];
+    allow: string[];
+    deny: string[];
+    args: string[];
+    warn: string[];
+}
 
 const truthy = new Set(['true', 'True', 'TRUE']);
 const falsy = new Set(['false', 'False', 'FALSE']);
@@ -46,77 +43,37 @@ const getBooleanInput = (name: string, options: InputOptions) => {
     );
 };
 
-export const getInputs = async (): Promise<Inputs | null> => {
-    const allFeatures = getBooleanInput('all-features', { trimWhitespace: true });
-    const workingDirectory = getInput('working-directory', { trimWhitespace: true });
-    const githubToken = getInput('token', { trimWhitespace: true });
-    if (githubToken === '') {
-        error('Missing required `token` input');
-        return null;
-    }
-
-    const allow = getInput('allow', { trimWhitespace: true })
-        .split(',')
+function getArrayInput(input: string, opts: { sep: string }) {
+    return getInput(input, { trimWhitespace: true })
+        .split(opts.sep)
+        .filter(Boolean)
         .map((s) => s.trim());
+}
 
-    const deny = getInput('deny', { trimWhitespace: true })
-        .split(',')
-        .map((s) => s.trim());
-
-    const forbid = getInput('forbid', { trimWhitespace: true })
-        .split(',')
-        .map((s) => s.trim());
-
-    const warn = getInput('forbid', { trimWhitespace: true })
-        .split(',')
-        .map((s) => s.trim());
-
-    const args = getInput('args', { trimWhitespace: true })
-        .split(' ')
-        .map((s) => s.trim());
-
-    const checkArgs = getInput('check-args', { trimWhitespace: true })
-        .split(' ')
-        .map((s) => s.trim());
-
-    if (args.some((s) => s.startsWith('-W') || s.startsWith('--warning'))) {
-        error('To append new warning lints, use the `warn` action input.');
+export function getInputs(): Inputs | null {
+    const wd = getInput('working-directory', { trimWhitespace: true });
+    const token = getInput('token', { trimWhitespace: true });
+    if (token === '') {
+        error('Missing required input: `token`');
         return null;
     }
 
-    if (args.some((s) => s.startsWith('-D') || s.startsWith('--deny'))) {
-        error('To append new deny lints, use the `deny` action input.');
-        return null;
-    }
+    const allow = getArrayInput('allow', { sep: ',' });
+    const deny = getArrayInput('deny', { sep: ',' });
+    const forbid = getArrayInput('forbid', { sep: ',' });
+    const warn = getArrayInput('warn', { sep: ',' });
+    const args = getArrayInput('args', { sep: ' ' });
+    const checkArgs = getArrayInput('check-args', { sep: ' ' });
 
-    if (args.some((s) => s.startsWith('-F') || s.startsWith('--forbid'))) {
-        error('To append new forbidden lints, use the `forbid` action input.');
-        return null;
-    }
-
-    if (args.some((s) => s.startsWith('-A') || s.startsWith('--allow'))) {
-        error('To append new allowed lints, use the `allow` action input.');
-        return null;
-    }
-
-    if (args.some((s) => s.includes('--message-format'))) {
-        error('Do not use `--message-format` in arguments, this action will fail.');
-        return null;
-    }
-
-    if (checkArgs.some((s) => s.includes('--all-features'))) {
-        error('`--all-features` is replaced by the `all-features` argument when using the action.');
-        return null;
-    }
-
-    return inputSchema.parseAsync({
-        'working-directory': workingDirectory === '' ? undefined : workingDirectory,
-        'all-features': allFeatures,
-        'github-token': githubToken,
-        forbid: forbid.filter(String),
-        allow: allow.filter(String),
-        deny: deny.filter(String),
-        warn: warn.filter(String),
-        args: args.filter(String)
-    });
-};
+    return {
+        'working-directory': wd,
+        'github-token': token,
+        'all-features': getBooleanInput('all-features', { trimWhitespace: true }),
+        'check-args': checkArgs,
+        forbid,
+        allow,
+        warn,
+        deny,
+        args
+    } satisfies Inputs;
+}
