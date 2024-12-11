@@ -27,7 +27,7 @@
         "@augu/tsconfig": "1.2.0",
         "@types/bun": "1.1.14",
         "@types/eslint": "9.6.1",
-        "@types/node": "22.10.1",
+        "@types/node": "22.10.2",
         "@types/prettier": "3.0.0",
         "@typescript-eslint/eslint-plugin": "8.18.0",
         "@typescript-eslint/parser": "8.18.0",
