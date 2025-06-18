@@ -1,7 +1,7 @@
 {
     "name": "@augu/clippy-action",
     "description": "🐻‍❄️📦 GitHub action to run Clippy, an up-to-date and modern version of actions-rs/clippy",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "private": true,
     "type": "module",
     "main": "build/main.js",
