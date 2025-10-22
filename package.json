@@ -35,7 +35,7 @@
         "colorette": "2.0.20",
         "eslint": "9.38.0",
         "eslint-config-prettier": "10.1.8",
-        "eslint-formatter-codeframe": "7.32.1",
+        "eslint-formatter-codeframe": "7.32.2",
         "eslint-plugin-perfectionist": "4.15.1",
         "prettier": "3.6.2",
         "typescript": "5.9.3"
