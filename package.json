@@ -37,7 +37,7 @@
         "eslint-config-prettier": "10.1.8",
         "eslint-formatter-codeframe": "7.32.2",
         "eslint-plugin-perfectionist": "4.15.1",
-        "prettier": "3.6.2",
+        "prettier": "3.8.1",
         "typescript": "5.9.3"
     }
 }
