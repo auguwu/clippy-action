@@ -1,119 +1,35 @@
-// Bun Snapshot v1, https://goo.gl/fbAQLP
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
 exports[`clippy :: error + warnings 1`] = `
-{
-  "error": [
-    [
-      {
-        "properties": {
-          "endColumn": 24,
-          "endLine": 5,
-          "file": undefined,
-          "startColumn": 8,
-          "startLine": 5,
-          "title": "equal expressions as operands to \`==\`",
-        },
-        "rendered": 
-"error: equal expressions as operands to \`==\`
- --> src/main.rs:5:8
-  |
-5 |     if *a + 1 == *a + 1 {}
-  |        ^^^^^^^^^^^^^^^^
-  |
-  = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#eq_op
-  = note: \`#[deny(clippy::eq_op)]\` on by default
+[
+  {
+    "endColumn": 14,
+    "endLine": 4,
+    "file": undefined,
+    "startColumn": 9,
+    "startLine": 4,
+    "title": "variable does not need to be mutable",
+  },
+]
+`;
 
-"
-,
-      },
-    ],
-  ],
-  "info": [],
-  "warning": [
-    [
-      {
-        "properties": {
-          "endColumn": 14,
-          "endLine": 4,
-          "file": undefined,
-          "startColumn": 9,
-          "startLine": 4,
-          "title": "variable does not need to be mutable",
-        },
-        "rendered": 
-"warning: variable does not need to be mutable
- --> src/main.rs:4:9
-  |
-4 |     let mut a = Box::new(1);
-  |         ----^
-  |         |
-  |         help: remove this \`mut\`
-  |
-  = note: \`#[warn(unused_mut)]\` on by default
-
-"
-,
-      },
-    ],
-  ],
-}
+exports[`clippy :: error + warnings 2`] = `
+[
+  {
+    "endColumn": 24,
+    "endLine": 5,
+    "file": undefined,
+    "startColumn": 8,
+    "startLine": 5,
+    "title": "equal expressions as operands to \`==\`",
+  },
+]
 `;
 
 exports[`clippy :: no warning or error messages 1`] = `
 {
-  "error": [
-    [
-      {
-        "properties": {
-          "endColumn": 24,
-          "endLine": 5,
-          "file": undefined,
-          "startColumn": 8,
-          "startLine": 5,
-          "title": "equal expressions as operands to \`==\`",
-        },
-        "rendered": 
-"error: equal expressions as operands to \`==\`
- --> src/main.rs:5:8
-  |
-5 |     if *a + 1 == *a + 1 {}
-  |        ^^^^^^^^^^^^^^^^
-  |
-  = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#eq_op
-  = note: \`#[deny(clippy::eq_op)]\` on by default
-
-"
-,
-      },
-    ],
-  ],
+  "error": [],
   "info": [],
-  "warning": [
-    [
-      {
-        "properties": {
-          "endColumn": 14,
-          "endLine": 4,
-          "file": undefined,
-          "startColumn": 9,
-          "startLine": 4,
-          "title": "variable does not need to be mutable",
-        },
-        "rendered": 
-"warning: variable does not need to be mutable
- --> src/main.rs:4:9
-  |
-4 |     let mut a = Box::new(1);
-  |         ----^
-  |         |
-  |         help: remove this \`mut\`
-  |
-  = note: \`#[warn(unused_mut)]\` on by default
-
-"
-,
-      },
-    ],
-  ],
+  "warning": [],
 }
 `;
