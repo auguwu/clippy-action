@@ -1,5 +1,5 @@
 # 🐻‍❄️📦 clippy-action: GitHub action to run Clippy, an up-to-date and modern version of actions-rs/clippy
-# Copyright 2023-2024 Noel Towa <cutie@floofy.dev>
+# Copyright 2023-2026 Noel <cutie@floofy.dev>, et al.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 
 name: Clippy Action
 description: '🐻‍❄️📦 GitHub action to run Clippy, an up-to-date and modern version of actions-rs/clippy'
-author: Noel Towa <cutie@floofy.dev>
+author: Noel <cutie@floofy.dev>
 branding:
     color: gray-dark
     icon: cloud

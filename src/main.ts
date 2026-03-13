@@ -1,6 +1,6 @@
 /*
  * 🐻‍❄️📦 clippy-action: GitHub action to run Clippy, an up-to-date and modern version of actions-rs/clippy
- * Copyright 2023-2024 Noel Towa <cutie@floofy.dev>
+ * Copyright 2023-2026 Noel <cutie@floofy.dev>, et al.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import { assertIsError } from '@noelware/utils';
 import { getExecOutput } from '@actions/exec';
 import { getInputs } from './inputs';
 import * as osInfo from './os-info';
-import { which } from '@actions/io';
 import * as clippy from './clippy';
+import { which } from '@actions/io';
 
 async function main() {
     const inputs = getInputs();

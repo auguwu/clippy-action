@@ -1,6 +1,6 @@
 /*
  * 🐻‍❄️📦 clippy-action: GitHub action to run Clippy, an up-to-date and modern version of actions-rs/clippy
- * Copyright 2023-2024 Noel Towa <cutie@floofy.dev>
+ * Copyright 2023-2026 Noel <cutie@floofy.dev>, et al.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,25 +59,9 @@ export function getInputs(): Inputs | null {
     }
 
     const allow = getArrayInput('allow', { sep: ',' });
-    if (allow.length) {
-        warning('The `allow` input is deprecated in v1.4 and can be used within the `check-args` input');
-    }
-
     const deny = getArrayInput('deny', { sep: ',' });
-    if (deny.length) {
-        warning('The `deny` input is deprecated in v1.4 and can be used within the `check-args` input');
-    }
-
     const forbid = getArrayInput('forbid', { sep: ',' });
-    if (forbid.length) {
-        warning('The `forbid` input is deprecated in v1.4 and can be used within the `check-args` input');
-    }
-
     const warn = getArrayInput('warn', { sep: ',' });
-    if (warn.length) {
-        warning('The `warn` input is deprecated in v1.4 and can be used within the `check-args` input');
-    }
-
     const args = getArrayInput('args', { sep: ' ' });
     const checkArgs = getArrayInput('check-args', { sep: ' ' });
 
