@@ -20,7 +20,7 @@ branding:
     color: gray-dark
     icon: cloud
 runs:
-    using: node20
+    using: node24
     main: ./build/index.js
 inputs:
     check-args:
