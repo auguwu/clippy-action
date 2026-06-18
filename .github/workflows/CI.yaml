@@ -45,7 +45,7 @@ jobs:
         name: CI
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
             - uses: oven-sh/setup-bun@v2
             - run: bun install --frozen-lockfile
             - run: bun run lint
@@ -57,7 +57,7 @@ jobs:
         needs: [ci] # Ensure that `ci` completes successfully.
         if: ${{github.repository == 'auguwu/clippy-action' && github.event_name != 'pull_request'}}
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
             - uses: oven-sh/setup-bun@v2
             - run: bun install --frozen
             - run: bun run build
