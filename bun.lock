@@ -17,7 +17,7 @@
         "@stylistic/eslint-plugin": "5.10.0",
         "@types/bun": "1.4.0",
         "@types/eslint": "9.6.1",
-        "@types/node": "26.2.0",
+        "@types/node": "26.3.0",
         "@types/prettier": "3.0.0",
         "@typescript-eslint/eslint-plugin": "8.67.0",
         "@typescript-eslint/parser": "8.67.0",
@@ -108,7 +108,7 @@
 
     "@types/json-schema": ["@types/json-schema@7.0.15", "", {}, "sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA=="],
 
-    "@types/node": ["@types/node@26.2.0", "", { "dependencies": { "undici-types": "~8.3.0" } }, "sha512-5IviulTZeRNp2vAJ514cc/HUlY5nZ9fCbq9DMyC52BrhFZACo3nI0R7qBxhQmo/d27NFe96ur/b7Wwxklda+kg=="],
+    "@types/node": ["@types/node@26.3.0", "", { "dependencies": { "undici-types": "~8.3.0" } }, "sha512-L3fgrnchriRC2ExBflb8j4uZZURHZfQsmQeyVzhjcHW4kkwVyo8/0h1B2MVzMTrYUJYu6G7EWs14hW/L9putqw=="],
 
     "@types/prettier": ["@types/prettier@3.0.0", "", { "dependencies": { "prettier": "*" } }, "sha512-mFMBfMOz8QxhYVbuINtswBp9VL2b4Y0QqYHwqLz3YbgtfAcat2Dl6Y1o4e22S/OVE6Ebl9m7wWiMT2lSbAs1wA=="],
 
