@@ -28,7 +28,7 @@
         "@stylistic/eslint-plugin": "5.10.0",
         "@types/bun": "1.4.2",
         "@types/eslint": "9.6.1",
-        "@types/node": "26.6.4",
+        "@types/node": "26.6.5",
         "@types/prettier": "3.0.0",
         "@typescript-eslint/eslint-plugin": "8.71.1",
         "@typescript-eslint/parser": "8.71.1",
